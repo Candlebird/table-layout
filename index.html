@@ -252,7 +252,9 @@
   #emptyHint .row { display: flex; gap: 8px; justify-content: center; }
 
   .table { position: absolute; }
-  .table.dragging { z-index: 10; }
+  .table.dragging { z-index: 10; transition: left .09s ease-out, top .09s ease-out; }
+  .table.leaving { pointer-events: none; }
+  .table.overlap .top { outline: 3px solid color-mix(in srgb, var(--danger) 55%, transparent); outline-offset: 5px; }
   .table .top {
     position: absolute; border-radius: 50%;
     background: radial-gradient(circle at 38% 30%, var(--wood-1) 0%, var(--wood-2) 58%, var(--wood-3) 100%);
@@ -331,14 +333,21 @@
   }
   .seat.match { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--hit) !important; }
 
-  .drag-ghost {
-    position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none;
-    display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 11px; white-space: nowrap;
+  .drag-ghost { position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none; will-change: transform; }
+  .drag-ghost .card {
+    display: flex; align-items: center; gap: 9px; padding: 7px 14px 7px 11px; white-space: nowrap;
     background: var(--panel); color: var(--text); font-weight: 600;
-    border: 1px solid var(--border); border-radius: 99px; box-shadow: var(--shadow-lg);
-    transform: translate(-50%, -50%) rotate(-2deg);
+    border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg);
+    /* Float above the pointer so the seat underneath stays visible */
+    transform: translate(-50%, calc(-100% - 12px)) rotate(-1.5deg);
+    animation: ghost-in .14s ease-out;
   }
-  .drag-ghost .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gc, var(--ungrouped)); }
+  @keyframes ghost-in { from { opacity: 0; scale: .85; } }
+  .drag-ghost .dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--gc, var(--ungrouped)); }
+  .drag-ghost .txt { display: flex; flex-direction: column; line-height: 1.25; }
+  .drag-ghost .hint { display: none; font-size: 11px; font-weight: 550; color: var(--accent); }
+  .drag-ghost.has-hint .hint { display: block; }
+  .chip.lifting, .seat.lifting { opacity: .35; }
   body.dragging-person, body.dragging-person * { cursor: grabbing !important; }
 
   /* Toast */
@@ -836,11 +845,45 @@
                  : `<span class="pill"><b>${free}</b> free</span>`);
   }
 
+  // Rebuilds the floor. Compared with the previous DOM, moved tables glide to their new spot,
+  // new tables fade in, removed ones fade out, and newly seated guests pop in.
+  const EASE = 'cubic-bezier(.2, .8, .2, 1)';
+  let floorReady = false;   // no animations on the first paint
   function renderTables() {
     const q = query();
     const highlight = !!(q || groupFilter);
+    const before = new Map();
+    for (const el of world.querySelectorAll(':scope > .table:not(.leaving)')) before.set(el.dataset.tid, el);
     world.innerHTML = '';
-    for (const t of state.tables) world.appendChild(buildTable(t, q, highlight));
+    let pops = 0;
+    for (const t of state.tables) {
+      const el = buildTable(t, q, highlight);
+      world.appendChild(el);
+      if (!floorReady) continue;
+      const old = before.get(t.id);
+      if (!old) {
+        el.animate([{ opacity: 0, transform: 'scale(.85)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: EASE });
+        continue;
+      }
+      before.delete(t.id);
+      const dx = +old.dataset.x - t.x, dy = +old.dataset.y - t.y;
+      if (dx || dy) el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 260, easing: EASE });
+      const was = old.querySelectorAll('.seat');
+      for (const seat of el.querySelectorAll('.seat.filled')) {
+        if (was[seat.dataset.idx]?.dataset.pid === seat.dataset.pid) continue;
+        seat.animate([
+          { transform: 'scale(.55)', opacity: .2 },
+          { transform: 'scale(1.1)', opacity: 1, offset: .6 },
+          { transform: 'scale(1)' },
+        ], { duration: 300, delay: Math.min(pops++ * 18, 700), easing: 'ease-out', fill: 'backwards' });
+      }
+    }
+    for (const old of before.values()) {
+      old.classList.add('leaving');
+      world.appendChild(old);
+      old.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(.9)' }], { duration: 180, easing: 'ease-in' }).onfinish = () => old.remove();
+    }
+    floorReady = true;
   }
 
   function buildTable(t, q, highlight) {
@@ -848,6 +891,8 @@
     const el = document.createElement('div');
     el.className = 'table';
     el.dataset.tid = t.id;
+    el.dataset.x = t.x;
+    el.dataset.y = t.y;
     el.style.width = el.style.height = half * 2 + 'px';
     el.style.left = (t.x - half) + 'px';
     el.style.top = (t.y - half) + 'px';
@@ -919,23 +964,27 @@
   }
 
   // ---------- table operations ----------
+  // Can a table with `seats` sit at (x, y) without its seat ring touching another table's?
+  function spotFree(x, y, seats, skip) {
+    return state.tables.every(t => t === skip || Math.hypot(t.x - x, t.y - y) >= halfSize(t.seats) + halfSize(seats) + 10);
+  }
+  // Nearest free grid spot to (x, y), spiralling outward
+  function freeSpot(x, y, seats, skip) {
+    for (let ring = 0; ring < 160; ring++) {
+      const n = Math.max(1, ring * 6);
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2;
+        const tx = snap(x + Math.cos(a) * ring * G), ty = snap(y + Math.sin(a) * ring * G);
+        if (spotFree(tx, ty, seats, skip)) return { x: tx, y: ty };
+      }
+    }
+    return { x: snap(x), y: snap(y) };
+  }
+
   function addTable() {
     const seats = +$('newSize').value;
     const r = viewport.getBoundingClientRect();
-    const cx = (r.width / 2 - view.x) / view.s, cy = (r.height / 2 - view.y) / view.s;
-    const need = halfSize(seats);
-    const fits = (x, y) => state.tables.every(t => Math.hypot(t.x - x, t.y - y) >= halfSize(t.seats) + need + 10);
-    // Spiral outward from the view center until a free spot is found
-    let x = snap(cx), y = snap(cy);
-    outer: for (let ring = 0; ring < 40; ring++) {
-      const step = ring * G * 4;
-      const n = Math.max(1, ring * 8);
-      for (let k = 0; k < n; k++) {
-        const a = (k / n) * Math.PI * 2;
-        const tx = snap(cx + Math.cos(a) * step), ty = snap(cy + Math.sin(a) * step);
-        if (fits(tx, ty)) { x = tx; y = ty; break outer; }
-      }
-    }
+    const { x, y } = freeSpot((r.width / 2 - view.x) / view.s, (r.height / 2 - view.y) / view.s, seats);
     state.tables.push({ id: uid(), label: 'Table ' + nextTableNumber(), x, y, seats, assign: Array(seats).fill(null) });
     changed();
   }
@@ -1254,10 +1303,65 @@
   // ---------- pointer interactions ----------
   const DRAG_THRESHOLD = 4;
 
-  function personDrag(e, pid, from) {
+  const toWorld = (cx, cy) => {
+    const r = viewport.getBoundingClientRect();
+    return { x: (cx - r.left - view.x) / view.s, y: (cy - r.top - view.y) / view.s };
+  };
+
+  // While dragging near a floor edge, pan the floor that way (faster the closer to the edge).
+  // Returns a stop function. `after` runs whenever the view moved.
+  function edgePan(pointer, after) {
+    const EDGE = 56, MAX = 16;
+    const speed = d => d < EDGE ? (1 - Math.max(d, 0) / EDGE) * MAX : 0;
+    let raf;
+    const tick = () => {
+      const r = viewport.getBoundingClientRect(), { clientX: x, clientY: y } = pointer();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+        const dx = speed(x - r.left) - speed(r.right - x), dy = speed(y - r.top) - speed(r.bottom - y);
+        if (dx || dy) { view.x += dx; view.y += dy; applyView(); after(); }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(raf); autosave(); };
+  }
+
+  // Shared plumbing for drags: threshold, pointer/Escape listeners, one update per frame.
+  // end(ev) gets null when the drag was cancelled.
+  function track(e, { start, frame, end }) {
     const sx = e.clientX, sy = e.clientY;
-    let ghost = null, hover = null;
-    const name = personById(pid)?.name || '';
+    let last = e, active = false, raf = 0;
+    const move = ev => {
+      last = ev;
+      if (!active) {
+        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
+        active = true;
+        start(() => last);
+      }
+      if (!raf) raf = requestAnimationFrame(() => { raf = 0; frame(last); });
+    };
+    const finish = ev => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', finish);
+      window.removeEventListener('pointercancel', cancel);
+      window.removeEventListener('keydown', key, true);
+      cancelAnimationFrame(raf);
+      if (active && raf && ev) frame(ev); // flush a move that hadn't painted yet
+      raf = 0;
+      if (active) end(ev);
+    };
+    const cancel = () => finish(null);
+    const key = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); finish(null); } };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', finish);
+    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('keydown', key, true);
+  }
+
+  function personDrag(e, pid, from, srcEl) {
+    const p = personById(pid);
+    if (!p) return;
+    let ghost, hover = null, stopPan;
 
     const targetAt = (x, y) => {
       const el = document.elementFromPoint(x, y);
@@ -1269,87 +1373,118 @@
       if (el.closest('aside')) return list;
       return null;
     };
-    const move = ev => {
-      if (!ghost) {
-        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
+    // What dropping here would do, shown under the name in the ghost
+    const hintFor = t => {
+      if (!t) return '';
+      if (t === list) return from ? 'Unseat' : '';
+      if (t.classList.contains('grow')) {
+        const g = groupById(t.dataset.gid);
+        return g && g.id !== p.group ? `Add to ${g.name}` : '';
+      }
+      const occ = t.dataset.pid && personById(t.dataset.pid);
+      if (occ) return occ.id === pid ? '' : (from ? `Swap with ${occ.name}` : `Replace ${occ.name}`);
+      return `${tableById(t.dataset.tid)?.label || 'Table'} · seat ${+t.dataset.idx + 1}`;
+    };
+    const frame = ev => {
+      ghost.style.transform = `translate3d(${ev.clientX}px, ${ev.clientY}px, 0)`;
+      const t = targetAt(ev.clientX, ev.clientY);
+      if (t === hover) return;
+      hover?.classList.remove('drop-hover');
+      hover = t;
+      hover?.classList.add('drop-hover');
+      const h = hintFor(t);
+      ghost.querySelector('.hint').textContent = h;
+      ghost.classList.toggle('has-hint', !!h);
+    };
+    track(e, {
+      start(pointer) {
         ghost = document.createElement('div');
         ghost.className = 'drag-ghost';
-        ghost.innerHTML = '<span class="dot"></span><span></span>';
-        ghost.lastChild.textContent = name;
-        const g = groupById(personById(pid)?.group);
+        ghost.innerHTML = '<div class="card"><span class="dot"></span><span class="txt"><span class="nm"></span><span class="hint"></span></span></div>';
+        ghost.querySelector('.nm').textContent = p.name;
+        const g = groupById(p.group);
         if (g) ghost.style.setProperty('--gc', g.color);
         document.body.appendChild(ghost);
         document.body.classList.add('dragging-person');
-      }
-      ghost.style.left = ev.clientX + 'px';
-      ghost.style.top = ev.clientY + 'px';
-      const t = targetAt(ev.clientX, ev.clientY);
-      if (t !== hover) {
+        srcEl?.classList.add('lifting');
+        stopPan = edgePan(pointer, () => frame(pointer()));
+      },
+      frame,
+      end(ev) {
+        stopPan();
+        ghost.remove();
+        document.body.classList.remove('dragging-person');
+        srcEl?.classList.remove('lifting');
         hover?.classList.remove('drop-hover');
-        hover = t;
-        hover?.classList.add('drop-hover');
-      }
-    };
-    const up = ev => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      if (!ghost) return;
-      ghost.remove();
-      document.body.classList.remove('dragging-person');
-      hover?.classList.remove('drop-hover');
-      const t = targetAt(ev.clientX, ev.clientY);
-      if (!t) return;
-      if (t === list) { if (from) unseat(pid); }
-      else if (t.classList.contains('grow')) setGroup(pid, t.dataset.gid);
-      else dropOnSeat(pid, from, t.dataset.tid, +t.dataset.idx);
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
+        const t = ev && targetAt(ev.clientX, ev.clientY);
+        if (!t) return;
+        if (t === list) { if (from) unseat(pid); }
+        else if (t.classList.contains('grow')) setGroup(pid, t.dataset.gid);
+        else dropOnSeat(pid, from, t.dataset.tid, +t.dataset.idx);
+      },
+    });
   }
 
   function tableDrag(e, t, el) {
-    const sx = e.clientX, sy = e.clientY, ox = t.x, oy = t.y, half = halfSize(t.seats);
-    let moved = false;
-    const move = ev => {
-      if (!moved) {
-        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
-        moved = true;
+    const ox = t.x, oy = t.y, half = halfSize(t.seats), grab = toWorld(e.clientX, e.clientY);
+    let stopPan;
+    const place = (x, y) => {
+      t.x = x; t.y = y;
+      el.dataset.x = x; el.dataset.y = y;
+      el.style.left = (x - half) + 'px';
+      el.style.top = (y - half) + 'px';
+    };
+    const frame = ev => {
+      const w = toWorld(ev.clientX, ev.clientY);
+      const x = snap(ox + w.x - grab.x), y = snap(oy + w.y - grab.y);
+      if (x === t.x && y === t.y) return;
+      place(x, y);
+      el.classList.toggle('overlap', !spotFree(x, y, t.seats, t));
+    };
+    track(e, {
+      start(pointer) {
         el.classList.add('dragging');
         world.appendChild(el); // bring to front
-      }
-      t.x = snap(ox + (ev.clientX - sx) / view.s);
-      t.y = snap(oy + (ev.clientY - sy) / view.s);
-      el.style.left = (t.x - half) + 'px';
-      el.style.top = (t.y - half) + 'px';
-    };
-    const up = () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      el.classList.remove('dragging');
-      if (moved) changed();
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
+        stopPan = edgePan(pointer, () => frame(pointer()));
+      },
+      frame,
+      end(ev) {
+        stopPan();
+        el.classList.remove('dragging', 'overlap');
+        if (!ev) place(ox, oy);                       // Esc: put it back
+        else if (!spotFree(t.x, t.y, t.seats, t)) {
+          const s = freeSpot(t.x, t.y, t.seats, t);
+          t.x = s.x; t.y = s.y;                       // render() glides it out of the way
+        }
+        if (t.x !== ox || t.y !== oy) changed();
+      },
+    });
   }
 
+  let viewFrame = 0;
+  const requestView = () => { if (!viewFrame) viewFrame = requestAnimationFrame(() => { viewFrame = 0; applyView(); }); };
+
   function panDrag(e) {
+    stopViewAnim();
     const sx = e.clientX, sy = e.clientY, ox = view.x, oy = view.y;
     viewport.classList.add('panning');
-    const move = ev => { view.x = ox + ev.clientX - sx; view.y = oy + ev.clientY - sy; applyView(); };
+    const move = ev => { view.x = ox + ev.clientX - sx; view.y = oy + ev.clientY - sy; requestView(); };
     const up = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
       viewport.classList.remove('panning');
       autosave();
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
   }
 
   list.addEventListener('pointerdown', e => {
     if (e.button !== 0 || e.target.closest('.x')) return;
     const chip = e.target.closest('.chip');
-    if (chip) { e.preventDefault(); personDrag(e, chip.dataset.pid, null); }
+    if (chip) { e.preventDefault(); personDrag(e, chip.dataset.pid, null, chip); }
   });
   list.addEventListener('click', e => {
     const x = e.target.closest('.x');
@@ -1378,7 +1513,7 @@
     if (seat) {
       if (seat.dataset.pid) {
         e.preventDefault();
-        personDrag(e, seat.dataset.pid, { tid: seat.dataset.tid, idx: +seat.dataset.idx });
+        personDrag(e, seat.dataset.pid, { tid: seat.dataset.tid, idx: +seat.dataset.idx }, seat);
       }
       return;
     }
@@ -1401,23 +1536,57 @@
     if (seat) { e.preventDefault(); openEdit(seat.dataset.pid); }
   });
 
-  function zoomAt(factor, cx, cy) {
+  // Smoothly move the view. With an anchor, the world point under (cx, cy) stays put while zooming.
+  let viewAnim = 0;
+  function stopViewAnim() { cancelAnimationFrame(viewAnim); viewAnim = 0; }
+  function animateView(to, anchor) {
+    stopViewAnim();
+    const from = { ...view }, t0 = performance.now(), ms = 260;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms), e = 1 - (1 - k) ** 3;
+      const s = from.s * (to.s / from.s) ** e;   // geometric, so zoom speed feels even
+      view = anchor ? { s, x: anchor.cx - anchor.wx * s, y: anchor.cy - anchor.wy * s }
+        : { s, x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e };
+      applyView();
+      if (k < 1) viewAnim = requestAnimationFrame(step);
+      else { viewAnim = 0; autosave(); }
+    };
+    viewAnim = requestAnimationFrame(step);
+  }
+
+  function zoomAt(factor, cx, cy, animate) {
     const s = clamp(view.s * factor, 0.25, 2.5);
     const wx = (cx - view.x) / view.s, wy = (cy - view.y) / view.s;
-    view.s = s;
-    view.x = cx - wx * s;
-    view.y = cy - wy * s;
+    const to = { s, x: cx - wx * s, y: cy - wy * s };
+    if (animate) { animateView(to, { cx, cy, wx, wy }); return; }
+    view = to;
     applyView();
     autosave();
   }
+  // Wheel events are batched to one view update per frame. Mouse wheel zooms at the pointer;
+  // Ctrl+wheel (trackpad pinch) zooms faster; Shift+wheel or a sideways scroll pans.
+  let wheel = { f: 1, dx: 0, dy: 0 }, wheelAt = [0, 0], wheelFrame = 0;
   viewport.addEventListener('wheel', e => {
     e.preventDefault();
+    stopViewAnim();
     const r = viewport.getBoundingClientRect();
-    zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top);
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? r.height : 1;
+    const dx = e.deltaX * unit, dy = e.deltaY * unit;
+    if (e.ctrlKey) wheel.f *= Math.exp(-dy * 0.01);
+    else if (e.shiftKey) wheel.dx -= dy || dx;
+    else if (dx) { wheel.dx -= dx; wheel.dy -= dy; }
+    else wheel.f *= Math.exp(-dy * 0.0015);
+    wheelAt = [e.clientX - r.left, e.clientY - r.top];
+    if (!wheelFrame) wheelFrame = requestAnimationFrame(() => {
+      wheelFrame = 0;
+      view.x += wheel.dx; view.y += wheel.dy;
+      zoomAt(wheel.f, ...wheelAt);
+      wheel = { f: 1, dx: 0, dy: 0 };
+    });
   }, { passive: false });
-  const zoomCenter = f => { const r = viewport.getBoundingClientRect(); zoomAt(f, r.width / 2, r.height / 2); };
-  $('zoomIn').onclick = () => zoomCenter(1.2);
-  $('zoomOut').onclick = () => zoomCenter(1 / 1.2);
+  const zoomCenter = f => { const r = viewport.getBoundingClientRect(); zoomAt(f, r.width / 2, r.height / 2, true); };
+  $('zoomIn').onclick = () => zoomCenter(1.25);
+  $('zoomOut').onclick = () => zoomCenter(1 / 1.25);
   $('zoomLabel').onclick = () => zoomCenter(1 / view.s);
 
   function bounds() {
@@ -1436,11 +1605,7 @@
     if (!b) { view = { x: 40, y: 40, s: 1 }; applyView(); return; }
     const pad = 40;
     const s = clamp(Math.min((r.width - pad * 2) / (b.x1 - b.x0), (r.height - pad * 2) / (b.y1 - b.y0)), 0.25, 1.5);
-    view.s = s;
-    view.x = (r.width - (b.x1 - b.x0) * s) / 2 - b.x0 * s;
-    view.y = (r.height - (b.y1 - b.y0) * s) / 2 - b.y0 * s;
-    applyView();
-    autosave();
+    animateView({ s, x: (r.width - (b.x1 - b.x0) * s) / 2 - b.x0 * s, y: (r.height - (b.y1 - b.y0) * s) / 2 - b.y0 * s });
   }
   $('fit').onclick = fit;
 
