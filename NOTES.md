@@ -78,7 +78,8 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   The CSV starts with a UTF-8 BOM so Excel shows accented names correctly. Names that start with
   `= + - @` get a leading `'` so spreadsheets don't run them as formulas.
 - **Printing** uses a print-only page: an SVG floor plan scaled to fit, then the guest list in
-  three columns. Long names wrap (also after a hyphen) and shrink to fit their seat.
+  three columns. Long names wrap (also after a hyphen) and shrink to fit their seat, on screen
+  and in print. Extremely long names may still be cut off on a seat; hover shows the full name.
 - **Accessibility**: icon-only buttons have screen-reader labels, dialogs keep Tab inside them
   and give focus back to the button that opened them, every control shows a focus ring when you
   use the keyboard, and animations are turned off when the system asks for reduced motion.

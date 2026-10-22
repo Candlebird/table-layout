@@ -1019,8 +1019,12 @@
         seat.classList.add('filled');
         seat.dataset.pid = p.id;
         seat.innerHTML = '<span class="nm"></span>';
-        seat.firstChild.textContent = p.name;
-        const word = Math.max(...p.name.split(/\s+/).map(w => w.length));
+        // Allow a line break after hyphens so double-barrelled names wrap instead of shrinking
+        p.name.split(/(?<=-)/).forEach((part, k) => {
+          if (k) seat.firstChild.appendChild(document.createElement('wbr'));
+          seat.firstChild.appendChild(document.createTextNode(part));
+        });
+        const word = Math.max(...p.name.split(/[\s-]+/).map(w => w.length));
         if (word > 11 || p.name.length > 26) seat.classList.add('xlong');
         else if (word > 8 || p.name.length > 18) seat.classList.add('long');
         const g = groupById(p.group);
