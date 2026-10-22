@@ -394,7 +394,8 @@
     background: rgba(20, 22, 26, .38); backdrop-filter: blur(3px);
     opacity: 0; visibility: hidden; transition: opacity .18s, visibility .18s;
   }
-  .modal-back.open { opacity: 1; visibility: visible; }
+  /* visible at once on open so the first field can take focus; fades out on close */
+  .modal-back.open { opacity: 1; visibility: visible; transition: opacity .18s, visibility 0s; }
   .modal {
     width: min(460px, 92vw); padding: 22px 22px 18px;
     display: flex; flex-direction: column; gap: 14px;
@@ -422,6 +423,9 @@
 
   #printView { display: none; }
 
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
   @media print {
     body { display: block; overflow: visible; background: #fff; }
     header, aside, #viewport, .modal-back, #toast { display: none !important; }
@@ -510,7 +514,7 @@
   </section>
   <section class="list-head">
     <div class="sec-head"><span>Unassigned<em id="listCount">0</em></span></div>
-    <div class="search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="search" placeholder="Find a guest…  ( / )" autocomplete="off"></div>
+    <div class="search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="search" aria-label="Find a guest" placeholder="Find a guest…  ( / )" autocomplete="off"></div>
   </section>
   <div id="list"></div>
   <details class="help">
@@ -576,9 +580,9 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button class="act" hidden>Undo</button></div>
 
-<div class="modal-back" id="importModal">
+<div class="modal-back" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
   <div class="modal">
-    <h2>Import names</h2>
+    <h2 id="importTitle">Import names</h2>
     <p>One name per line. Names already in the list are skipped.</p>
     <textarea id="importText" placeholder="Jane Doe&#10;John Smith&#10;…" spellcheck="false"></textarea>
     <div class="hint" id="importCount"></div>
@@ -592,9 +596,9 @@
   </div>
 </div>
 
-<div class="modal-back" id="editModal">
+<div class="modal-back" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
   <div class="modal">
-    <h2>Edit guest</h2>
+    <h2 id="editTitle">Edit guest</h2>
     <label>Name <input type="text" id="editName" maxlength="80"></label>
     <label>Group <div class="groupPick" id="editGroup"></div></label>
     <div class="row">
@@ -607,7 +611,7 @@
   </div>
 </div>
 
-<div class="modal-back" id="groupModal">
+<div class="modal-back" id="groupModal" role="dialog" aria-modal="true" aria-labelledby="groupModalTitle">
   <div class="modal sm">
     <h2 id="groupModalTitle">Group</h2>
     <label>Name <input type="text" id="groupName" maxlength="40"></label>
@@ -618,7 +622,7 @@
   </div>
 </div>
 
-<div class="modal-back" id="confirmModal">
+<div class="modal-back" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
   <div class="modal sm">
     <h2 id="confirmTitle"></h2>
     <p id="confirmText"></p>
@@ -796,6 +800,13 @@
     applyView();
     updateUndoButtons();
     $('emptyHint').hidden = state.tables.length > 0;
+    labelControls();
+  }
+
+  function labelControls() {
+    for (const el of document.querySelectorAll('svg.i:not([aria-hidden])')) el.setAttribute('aria-hidden', 'true');
+    for (const el of document.querySelectorAll('[title]:is(button, select, input):not([aria-label])'))
+      if (!el.textContent.trim() || el.matches('select, input')) el.setAttribute('aria-label', el.title.replace(/\s*\([^)]*\)$/, ''));
   }
 
   function query() { return $('search').value.trim().toLowerCase(); }
@@ -1340,11 +1351,21 @@
   });
 
   // ---------- modals ----------
-  function openModal(id) { $(id).classList.add('open'); }
+  let returnFocus = null;
+  function openModal(id) {
+    const a = document.activeElement;
+    if (!a?.closest('.modal-back')) returnFocus = a && a !== document.body ? a : null;
+    $(id).classList.add('open');
+  }
   function closeModals() {
-    document.querySelectorAll('.modal-back.open').forEach(m => m.classList.remove('open'));
+    const open = document.querySelectorAll('.modal-back.open');
+    if (!open.length) return;
+    open.forEach(m => m.classList.remove('open'));
     // Don't leave focus in a hidden field, or single-key shortcuts would stop working
     if (document.activeElement?.closest('.modal-back')) document.activeElement.blur();
+    // Give focus back to the button that opened the dialog (not to text fields, which would swallow shortcuts)
+    if (returnFocus?.isConnected && returnFocus.matches('button')) returnFocus.focus({ preventScroll: true });
+    returnFocus = null;
   }
   const anyModalOpen = () => !!document.querySelector('.modal-back.open');
   document.querySelectorAll('.modal-back').forEach(m =>
@@ -1653,11 +1674,12 @@
   // Smoothly move the view. With an anchor, the world point under (cx, cy) stays put while zooming.
   let viewAnim = 0;
   function stopViewAnim() { cancelAnimationFrame(viewAnim); viewAnim = 0; }
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   function animateView(to, anchor) {
     stopViewAnim();
-    const from = { ...view }, t0 = performance.now(), ms = 260;
+    const from = { ...view }, t0 = performance.now(), ms = reduceMotion.matches ? 0 : 260;
     const step = now => {
-      const k = Math.min(1, (now - t0) / ms), e = 1 - (1 - k) ** 3;
+      const k = ms ? Math.min(1, (now - t0) / ms) : 1, e = 1 - (1 - k) ** 3;
       const s = from.s * (to.s / from.s) ** e;   // geometric, so zoom speed feels even
       view = anchor ? { s, x: anchor.cx - anchor.wx * s, y: anchor.cy - anchor.wy * s }
         : { s, x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e };
@@ -1735,7 +1757,17 @@
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeModals(); return; }
-    if (anyModalOpen()) return;
+    const modal = document.querySelector('.modal-back.open');
+    if (modal) {
+      if (e.key !== 'Tab') return;
+      const f = [...modal.querySelectorAll('button, input, select, textarea')].filter(el => !el.disabled && !el.hidden && el.offsetParent);
+      if (!f.length) return;
+      const i = f.indexOf(document.activeElement);
+      const next = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1);
+      e.preventDefault();
+      f[next].focus();
+      return;
+    }
     const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
     // File shortcuts work even while typing in the search box
     const file = { s: 'save', o: 'load', p: 'print' }[k];
