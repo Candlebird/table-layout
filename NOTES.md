@@ -61,13 +61,15 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   2. The "center" is the sweetheart table. Without one, it is the middle of all the tables.
   3. If someone in a group is already seated, the rest of the group joins those tables first.
      Every group gets this pass before any group claims a new table.
-  4. Groups are then placed in sidebar order, so the top group gets the tables closest to the
-     center. A group's "sit near" partner is placed right after it.
-  5. Each group aims at where it already sits, else at its seated "sit near" partner, else at the
-     center. It takes the best **cluster of neighboring tables** with enough free seats. The best
-     cluster is close to that aim, wastes few seats, is tightly packed, and has few other groups'
-     guests. A group that fits at one table normally gets one table.
-  6. Within the cluster, the closest table fills first, and the group sits in neighboring seats.
+  4. The rest is planned as a whole. One shortest path is laid through all the open tables
+     and the center, so it runs out from the center in **two arms** of neighboring tables.
+  5. Groups go in sidebar order, each followed by its "sit near" partners. Each group takes a
+     run of seats along one arm, so it sits at neighboring tables. A "sit near" partner seated
+     right after its group continues along the same arm. A group may skip ahead to a fresh
+     table rather than leave a guest or two stranded; the skipped seats go to ungrouped people.
+  6. Of all the ways to do this, the cheapest wins: few tables per group, no gaps between a
+     group's tables, nobody stranded, few skipped seats, and the higher groups close to the
+     center. A few paths are tried (about 100ms on a 40-table floor).
   7. Ungrouped people fill the remaining seats, closest tables to the center first.
   8. Anyone left without a seat stays in the list, and a message says how many more seats are needed.
 - **Sit near** is one choice per group, and either side of the pair counts. Deleting a group
@@ -119,7 +121,9 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   - Esc while dragging;
   - auto-fill with groups (214 people seated in 6ms);
   - placement-aware auto-fill: top group nearest the sweetheart table, "sit near" partner on
-    the neighboring table, reordering groups changes the result.
+    the neighboring table, reordering groups changes the result;
+  - a 32-guest group stays on 4 neighboring tables (it used to be split across the floor),
+    checked over 300 random group orders on a 12-table floor.
 - Sweetheart table: adding, the second-press message, dragging it onto a table, print.
 - Clear seats, then Undo.
 - Group drag-reorder, the "sit near" dialog, deleting a group that is someone's partner, Undo.

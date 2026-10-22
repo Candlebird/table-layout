@@ -1284,10 +1284,10 @@
 
   // ---------- auto-fill ----------
   // Seat everyone in the list, working outward from the sweetheart table (or the middle of
-  // the floor). Groups go in sidebar order, so the top group gets the closest tables, and a
-  // group's "sit near" partners are placed right after it, next to it. A group goes where it
-  // already sits, then to the best cluster of neighboring tables: close to its target, few
-  // seats left over, not spread out. Ungrouped guests fill what's left, closest first.
+  // the floor). A group first joins tables where some of it already sits. Then one path is
+  // laid through the open tables, running out from the couple in two arms, and the groups take
+  // runs of neighboring tables along it in sidebar order, so the top group sits closest and a
+  // group's "sit near" partners sit right after it. Ungrouped guests fill what's left, closest first.
   // The sweetheart table is left for the couple, who are seated by hand.
   function autoFill() {
     const seated = seatedIds();
@@ -1324,49 +1324,126 @@
       buckets.set(gid, rest);
     }
 
-    // The best set of neighboring open tables for `need` guests. A cluster is grown from
-    // every open table in turn by adding the nearest open table until the group fits.
-    const pickCluster = (need, target, gid) => {
-      const open = tables.filter(t => free(t) > 0);
-      let best = [], bestScore = Infinity;
-      for (const seed of open) {
-        const cl = [seed], rest = open.filter(t => t !== seed);
-        let seats = free(seed);
-        while (seats < need && rest.length) {
-          let k = 0, kd = Infinity;
-          rest.forEach((t, i) => { const d = Math.min(...cl.map(c => dist(c, t))); if (d < kd) { kd = d; k = i; } });
-          const t = rest.splice(k, 1)[0];
-          cl.push(t);
-          seats += free(t);
-        }
-        const c = centroid(cl);
-        const score = dist(c, target) / STEP                         // close to the target
-          + Math.max(0, seats - need) * 0.3                          // few seats left over
-          + Math.max(0, need - seats) * 10                           // fits the whole group
-          + cl.reduce((s, t) => s + dist(t, c), 0) / STEP * 0.5      // tables close together
-          + cl.reduce((s, t) => s + foreign(t, gid), 0) * 0.05;      // prefer tables to itself
-        if (score < bestScore) { bestScore = score; best = cl; }
-      }
-      return best.sort((a, b) => dist(a, target) - dist(b, target));
-    };
+    // Pass 2: lay the shortest path through all the open tables and the couple, so it runs out
+    // from the couple in two arms. The groups, in sidebar order (each followed by its "sit near"
+    // partners), take the seats along one arm or the other. That gives every group a run of
+    // neighboring tables, and the top groups the tables closest to the couple.
+    const open = tables.filter(t => free(t) > 0);
+    const pts = [...open, home], HOME = open.length;   // the last point is the couple
+    const D = pts.map(a => pts.map(b => dist(a, b)));
+    const freeN = open.map(free);
 
-    // Pass 2: groups in sidebar order, each followed by the groups it sits near
     const partners = g => state.groups.filter(h => h !== g && (h.near === g.id || g.near === h.id));
     const order = [], seen = new Set();
     const visit = g => { if (seen.has(g)) return; seen.add(g); order.push(g); partners(g).forEach(visit); };
     state.groups.forEach(visit);
-    const tablesOf = gid => tables.filter(t => countGroup(t, gid));
-    let unplaced = 0;
-    for (const g of order) {
-      let rest = buckets.get(g.id);
-      if (!rest?.length) continue;
-      // Aim for where the group already sits, else for a seated partner, else for the couple
-      let near = tablesOf(g.id);
-      if (!near.length) near = partners(g).flatMap(h => tablesOf(h.id));
-      const target = near.length ? centroid(near) : home;
-      for (const t of pickCluster(rest.length, target, g.id)) if (rest.length) rest = seatInto(t, rest, g.id);
-      unplaced += rest.length;
+    const todo = order.filter(g => buckets.get(g.id)?.length);
+    // A group seated right after its "sit near" partner stays on the partner's arm
+    const follows = todo.map((g, j) => j > 0 && partners(g).includes(todo[j - 1]));
+
+    // Nearest neighbor from `start`, untangled with 2-opt, then split into the two arms
+    const makeArms = start => {
+      const m = pts.length, p = [start], left = new Set(pts.keys());
+      left.delete(start);
+      while (left.size) {
+        const cur = p[p.length - 1];
+        let k = -1;
+        for (const j of left) if (k < 0 || D[cur][j] < D[cur][k]) k = j;
+        p.push(k);
+        left.delete(k);
+      }
+      for (let pass = 0, better = true; better && pass < 50; pass++) {
+        better = false;
+        for (let i = 0; i < m - 1; i++) for (let j = i + 1; j < m; j++) {
+          const a = i ? D[p[i - 1]][p[i]] - D[p[i - 1]][p[j]] : 0;
+          const b = j < m - 1 ? D[p[j]][p[j + 1]] - D[p[i]][p[j + 1]] : 0;
+          if (a + b > 1e-6) { p.splice(i, j - i + 1, ...p.slice(i, j + 1).reverse()); better = true; }
+        }
+      }
+      const h = p.indexOf(HOME);
+      return [p.slice(0, h).reverse(), p.slice(h + 1)];
+    };
+
+    // Seat the groups in order, each along either arm. A group takes that arm's next free
+    // seats, or skips ahead to a fresh table (the skipped seats go to ungrouped guests). Of all
+    // the ways to do that, keep the cheapest: count the tables a group is spread over, gaps
+    // between them, a guest or two stranded at a table, skipped seats, and for the higher
+    // groups, distance from the couple.
+    const seatAlong = arms => {
+      const cap = arms.map(a => a.map(i => freeN[i]));
+      const fill = (arm, pos, used, need) => {
+        const parts = [];
+        for (; need && pos < cap[arm].length; pos++, used = 0) {
+          const k = Math.min(need, cap[arm][pos] - used);
+          if (k <= 0) continue;
+          parts.push(arms[arm][pos], k);
+          need -= k;
+          used += k;
+          if (used < cap[arm][pos]) return { parts, pos, used, need };
+        }
+        return { parts, pos, used: 0, need };
+      };
+      let layer = new Map([['0,0,0,0,0', { cost: 0 }]]);   // position and seats used on each arm, and the last arm used
+      const layers = [];
+      todo.forEach((g, j) => {
+        const size = buckets.get(g.id).length, next = new Map();
+        const prio = 1.0 * (1 - j / todo.length);
+        for (const [key, st] of layer) {
+          const s = key.split(',').map(Number);
+          for (let arm = 0; arm < 2; arm++) {
+            if (follows[j] && arm !== s[4]) continue;
+            const pos = s[arm * 2], used = s[arm * 2 + 1], len = cap[arm].length;
+            if (pos >= len && (arm || s[2] < cap[1].length)) continue;   // that arm is full
+            // Start here, or at one of the next two tables
+            for (let skip = 0; skip <= 2 && pos + skip <= len; skip++) {
+              const at = pos + skip;
+              let waste = 0;
+              for (let q = pos; q < at; q++) waste += cap[arm][q] - (q === pos ? used : 0);
+              const f = fill(arm, at, skip ? 0 : used, size), ps = f.parts;
+              let cost = st.cost + waste * 0.4 + f.need * 10 + (ps.length ? prio * D[ps[0]][HOME] / STEP : 0);
+              for (let i = 0; i < ps.length; i += 2) {
+                if (i) cost += 1 + Math.max(0, D[ps[i - 2]][ps[i]] / STEP - 1.3) * 2;   // another table, and any gap
+                if (ps[i + 1] < Math.min(3, size)) cost += 1.5;                         // stranded guests
+              }
+              const ns = s.slice();
+              ns[arm * 2] = f.pos;
+              ns[arm * 2 + 1] = f.used;
+              ns[4] = arm;
+              const nk = ns.join(',');
+              if (!next.has(nk) || next.get(nk).cost > cost) next.set(nk, { cost, back: key, parts: ps });
+            }
+          }
+        }
+        // Keep the search small on a big floor
+        layer = next.size > 400 ? new Map([...next].sort((a, b) => a[1].cost - b[1].cost).slice(0, 400)) : next;
+        layers.push(layer);
+      });
+      let key = null, best = Infinity;
+      for (const [k, st] of layer) if (st.cost < best) { best = st.cost; key = k; }
+      const plan = [];
+      for (let j = layers.length - 1; j >= 0; j--) {
+        const st = layers[j].get(key);
+        plan[j] = st.parts;
+        key = st.back;
+      }
+      return { cost: best, plan };
+    };
+
+    // Try a few paths, starting from the couple and from the far corners of the floor
+    let plan = null, planCost = Infinity;
+    if (todo.length && open.length) {
+      const starts = [HOME, ...open.map((t, i) => i).sort((a, b) => D[b][HOME] - D[a][HOME]).slice(0, 4)];
+      for (const s of starts) {
+        const r = seatAlong(makeArms(s));
+        if (r.cost < planCost) { planCost = r.cost; plan = r.plan; }
+      }
     }
+    let unplaced = 0;
+    todo.forEach((g, j) => {
+      const rest = buckets.get(g.id), ps = plan ? plan[j] : [];
+      for (let i = 0; i < ps.length; i += 2) seatInto(open[ps[i]], rest.splice(0, ps[i + 1]), g.id);
+      unplaced += rest.length;
+    });
 
     let rest = loose;
     for (const t of [...tables].sort((a, b) => dist(a, home) - dist(b, home))) if (rest.length) rest = seatInto(t, rest, null);
