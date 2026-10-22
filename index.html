@@ -444,6 +444,7 @@
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
   <symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><circle cx="6.5" cy="6.5" r="3.5"/><circle cx="17.5" cy="6.5" r="3.5"/><circle cx="6.5" cy="17.5" r="3.5"/><circle cx="17.5" cy="17.5" r="3.5"/></symbol>
   <symbol id="i-save" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
   <symbol id="i-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
   <symbol id="i-sheet" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h6"/><path d="M8 13h8M8 17h8M12 13v4"/></symbol>
@@ -478,6 +479,7 @@
     <button id="zoomLabel" title="Reset zoom to 100%">100%</button>
     <button class="icon" id="zoomIn" title="Zoom in (+)"><svg class="i"><use href="#i-plus"/></svg></button>
     <button class="icon" id="fit" title="Fit all tables in view (F)"><svg class="i"><use href="#i-fit"/></svg></button>
+    <button class="icon" id="arrange" title="Arrange tables in a tidy grid (G)"><svg class="i"><use href="#i-grid"/></svg></button>
   </div>
   <span class="spacer"></span>
   <div class="seg">
@@ -527,6 +529,7 @@
     <div class="keys">
       <span><kbd>T</kbd> add table</span><span><kbd>I</kbd> import</span>
       <span><kbd>A</kbd> auto-fill</span><span><kbd>F</kbd> fit</span>
+      <span><kbd>G</kbd> arrange</span><span><kbd>?</kbd> these tips</span>
       <span><kbd>/</kbd> search</span><span><kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd> zoom</span>
       <span><kbd>Ctrl</kbd> <kbd>Z</kbd> undo</span><span><kbd>Ctrl</kbd> <kbd>Y</kbd> redo</span>
       <span><kbd>Ctrl</kbd> <kbd>S</kbd> save</span><span><kbd>Ctrl</kbd> <kbd>O</kbd> open</span>
@@ -1061,6 +1064,39 @@
     const { x, y } = freeSpot((r.width / 2 - view.x) / view.s, (r.height / 2 - view.y) / view.s, seats);
     state.tables.push({ id: uid(), label: 'Table ' + nextTableNumber(), x, y, seats, assign: Array(seats).fill(null) });
     changed();
+    // If the free spot is off screen, bring it into view
+    const h = halfSize(seats) * view.s;
+    const sx = x * view.s + view.x, sy = y * view.s + view.y;
+    if (sx - h < 0 || sy - h < 0 || sx + h > r.width || sy + h > r.height)
+      animateView({ s: view.s, x: r.width / 2 - x * view.s, y: r.height / 2 - y * view.s });
+  }
+
+  // Lay tables out in rows, in table-name order. Each column is as wide as its widest table
+  // and each row as tall as its tallest, so small tables don't leave big gaps.
+  function arrange() {
+    const ts = sortedTables();
+    if (!ts.length) { flash('No tables to arrange'); return; }
+    const r = viewport.getBoundingClientRect();
+    const cols = clamp(Math.round(Math.sqrt(ts.length * r.width / r.height)), 1, ts.length);
+    const rows = Math.ceil(ts.length / cols);
+    const colW = Array(cols).fill(0), rowH = Array(rows).fill(0);
+    ts.forEach((t, i) => {
+      const d = halfSize(t.seats) * 2 + G;
+      colW[i % cols] = Math.max(colW[i % cols], d);
+      rowH[Math.floor(i / cols)] = Math.max(rowH[Math.floor(i / cols)], d);
+    });
+    const b = bounds();
+    let moved = false;
+    ts.forEach((t, i) => {
+      const c = i % cols, w = Math.floor(i / cols);
+      const x = snap(b.x0 + colW.slice(0, c).reduce((a, v) => a + v, 0) + colW[c] / 2);
+      const y = snap(b.y0 + rowH.slice(0, w).reduce((a, v) => a + v, 0) + rowH[w] / 2);
+      if (x !== t.x || y !== t.y) { t.x = x; t.y = y; moved = true; }
+    });
+    if (!moved) { flash('Tables are already arranged'); return; }
+    changed();
+    flash('Arranged ' + ts.length + ' table' + (ts.length === 1 ? '' : 's'), { undo: true });
+    setTimeout(fit, 280);
   }
 
   function nextTableNumber() {
@@ -1686,6 +1722,7 @@
     animateView({ s, x: (r.width - (b.x1 - b.x0) * s) / 2 - b.x0 * s, y: (r.height - (b.y1 - b.y0) * s) / 2 - b.y0 * s });
   }
   $('fit').onclick = fit;
+  $('arrange').onclick = arrange;
 
   // ---------- toolbar ----------
   $('addTable').onclick = addTable;
@@ -1712,6 +1749,7 @@
       i: () => $('openImport').click(),
       a: autoFill,
       f: fit,
+      g: arrange,
       '/': () => { $('search').focus(); $('search').select(); },
       '+': () => zoomCenter(1.25), '=': () => zoomCenter(1.25),
       '-': () => zoomCenter(1 / 1.25), '_': () => zoomCenter(1 / 1.25),
@@ -1760,7 +1798,11 @@
   function sortedTables() {
     return [...state.tables].sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
   }
-  const csvCell = v => /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  // Quote when needed; a leading = + - @ would make spreadsheets treat a name as a formula
+  const csvCell = v => {
+    if (/^[=+\-@]/.test(v)) v = "'" + v;
+    return /[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  };
 
   $('exportCsv').onclick = () => {
     const rows = [['Table', 'Seat', 'Name', 'Group']];
@@ -1795,17 +1837,21 @@
           const g = p && groupById(p.group);
           svg += `<circle cx="${sx}" cy="${sy}" r="${SEAT / 2}" fill="${g ? g.color + '22' : '#fff'}" stroke="${g ? g.color : '#999'}" stroke-width="1.5"/>`;
           // Wrap name onto up to 3 lines
-          const words = p ? p.name.split(/\s+/) : [String(i + 1)];
+          // Long hyphenated words may break after the hyphen
+          const words = p ? p.name.split(/\s+/).flatMap(w => w.length > 10 ? w.split(/(?<=-)/) : [w]) : [String(i + 1)];
           const lines = [];
           for (const w of words) {
             const last = lines[lines.length - 1];
-            if (last && (last + ' ' + w).length <= 10) lines[lines.length - 1] = last + ' ' + w;
+            if (last && (last + ' ' + w).length <= 10) lines[lines.length - 1] = last + (last.endsWith('-') ? '' : ' ') + w;
             else lines.push(w);
           }
           const shown = lines.slice(0, 3);
+          if (lines.length > 3) shown[2] = shown[2].replace(/.$/, '…');
+          // Shrink long words so they stay inside the seat circle
+          const fs = Math.max(8, Math.min(11, Math.floor(SEAT * 0.86 / (Math.max(...shown.map(l => l.length)) * 0.56))));
           shown.forEach((ln, k) => {
-            const y = sy + (k - (shown.length - 1) / 2) * 12 + 4;
-            svg += `<text x="${sx}" y="${y}" text-anchor="middle" font-size="11" fill="${p ? '#111' : '#aaa'}">${esc(ln)}</text>`;
+            const y = sy + (k - (shown.length - 1) / 2) * (fs + 1) + fs * 0.36;
+            svg += `<text x="${sx}" y="${y.toFixed(1)}" text-anchor="middle" font-size="${fs}" fill="${p ? '#111' : '#aaa'}">${esc(ln)}</text>`;
           });
         }
       }
