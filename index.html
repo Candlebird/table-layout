@@ -31,7 +31,8 @@
     --wood-3: #d6bc90;
     --wood-text: #5b4526;
     --seat-edge: #ccd0d6;
-    --ungrouped: #8b929c;
+    --heart: #e0607e;
+  --ungrouped: #8b929c;
     --shadow-sm: 0 1px 2px rgba(28, 30, 33, .06), 0 1px 3px rgba(28, 30, 33, .08);
     --shadow-md: 0 6px 16px rgba(28, 30, 33, .10), 0 2px 4px rgba(28, 30, 33, .06);
     --shadow-lg: 0 20px 50px rgba(28, 30, 33, .22), 0 6px 16px rgba(28, 30, 33, .10);
@@ -122,6 +123,7 @@
   .add { display: flex; }
   .add select { border-radius: var(--radius) 0 0 var(--radius); border-right: 0; }
   .add button { border-radius: 0 var(--radius) var(--radius) 0; }
+  #addCouple .i { fill: var(--heart); stroke: none; }
   .seg { display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--sunken); border-radius: 10px; }
   .seg button { height: 28px; border: 0; border-radius: 7px; background: transparent; padding: 0 10px; }
   .seg button.icon { width: 30px; padding: 0; }
@@ -177,6 +179,12 @@
   .grow input[type=color]::-webkit-color-swatch { border: 0; border-radius: 50%; }
   .grow input[type=color]::-moz-color-swatch { border: 0; border-radius: 50%; }
   .grow .gname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .grow .gnear { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .grow .grip { width: 8px; height: 14px; margin: 0 -5px 0 -3px; flex: none; color: var(--muted); opacity: 0; cursor: grab; fill: currentColor; stroke: none; }
+  .grow:hover .grip { opacity: .7; }
+  .grow.lifted { background: var(--panel); border-color: var(--border-strong); box-shadow: var(--shadow-md); position: relative; z-index: 1; }
+  .grow.lifted .grip { opacity: 1; }
+  body.dragging-group, body.dragging-group * { cursor: grabbing !important; }
   .grow .gcount { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; padding: 0 4px; }
   .grow button { width: 24px; height: 24px; padding: 0; border: 0; background: none; color: var(--muted); opacity: 0; }
   .grow button .i { width: 14px; height: 14px; }
@@ -310,6 +318,17 @@
     background: rgba(255, 255, 255, .92); border-color: rgba(120, 85, 40, .3);
   }
   .table .controls button .i { width: 13px; height: 13px; }
+  /* The sweetheart table: a long top with the couple side by side behind it */
+  .table.couple .top {
+    border-radius: 18px;
+    background: linear-gradient(170deg, var(--wood-1) 0%, var(--wood-2) 62%, var(--wood-3) 100%);
+  }
+  .table.couple .top::before { inset: 7px; border-radius: 12px; }
+  .table.couple .label { width: 58%; }
+  .table.couple .heart { position: absolute; top: 50%; width: 15px; height: 15px; margin-top: -8px; fill: var(--heart); stroke: none; opacity: .8; pointer-events: none; }
+  .table.couple .heart.l { left: 15px; transform: rotate(-12deg); }
+  .table.couple .heart.r { right: 15px; transform: rotate(12deg); }
+  .table.couple .seat:not(.filled) { border-color: color-mix(in srgb, var(--heart) 45%, var(--seat-edge)); color: color-mix(in srgb, var(--heart) 55%, #b3b7bd); }
   .table .controls button:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); background: #fff; }
 
   .seat {
@@ -417,6 +436,7 @@
   .modal .row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px; }
   .modal .row .spacer { flex: 1; }
   .modal .groupPick { display: flex; gap: 6px; }
+  .modal label > select { height: 34px; font-weight: 400; color: var(--text); }
   .modal .groupPick select, .modal .groupPick input { flex: 1; min-width: 0; height: 34px; font-weight: 400; color: var(--text); }
   .modal button.danger { color: var(--danger); }
   .modal button.danger:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
@@ -460,6 +480,8 @@
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
   <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
   <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4 6.9 4c2.1 0 3.6 1.1 5.1 3 1.5-1.9 3-3 5.1-3 3.9 0 6 4.2 4.5 7.7C19.5 16.4 12 21 12 21z"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 8 14"><circle cx="2" cy="2" r="1.3"/><circle cx="6" cy="2" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="6" cy="7" r="1.3"/><circle cx="2" cy="12" r="1.3"/><circle cx="6" cy="12" r="1.3"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 </svg>
 
@@ -474,6 +496,7 @@
     </select>
     <button class="primary" id="addTable" title="Add a table (T)"><svg class="i"><use href="#i-plus"/></svg>Add table</button>
   </div>
+  <button id="addCouple" title="Add the sweetheart table for the couple (H)"><svg class="i"><use href="#i-heart"/></svg>Sweetheart</button>
   <div class="seg">
     <button class="icon" id="undo" title="Undo (Ctrl+Z)"><svg class="i"><use href="#i-undo"/></svg></button>
     <button class="icon" id="redo" title="Redo (Ctrl+Y)"><svg class="i"><use href="#i-redo"/></svg></button>
@@ -501,7 +524,7 @@
 <aside>
   <section class="side-actions">
     <button class="primary" id="openImport" title="Add names, one per line (I)"><svg class="i"><use href="#i-userplus"/></svg>Import</button>
-    <button id="autoFill" title="Seat everyone in the list, keeping groups together (A)"><svg class="i"><use href="#i-wand"/></svg>Auto-fill</button>
+    <button id="autoFill" title="Seat everyone in the list, keeping groups together, top group closest to the couple (A)"><svg class="i"><use href="#i-wand"/></svg>Auto-fill</button>
   </section>
   <section class="stats" id="stats">
     <div class="stat-main"><b id="statSeated">0</b><span>of <span id="statPeople">0</span> seated</span><span class="pct" id="statPct"></span></div>
@@ -529,6 +552,7 @@
       <li>Drag the floor to pan, scroll to zoom</li>
       <li>Search also finds seated guests; click one to fly to their seat</li>
       <li>Hover a group to light up its seats</li>
+      <li>Drag groups to set Auto-fill priority: the top group sits closest to the sweetheart table</li>
     </ul>
     <div class="keys">
       <span><kbd>T</kbd> add table</span><span><kbd>I</kbd> import</span>
@@ -538,6 +562,7 @@
       <span><kbd>Ctrl</kbd> <kbd>Z</kbd> undo</span><span><kbd>Ctrl</kbd> <kbd>Y</kbd> redo</span>
       <span><kbd>Ctrl</kbd> <kbd>S</kbd> save</span><span><kbd>Ctrl</kbd> <kbd>O</kbd> open</span>
       <span><kbd>Ctrl</kbd> <kbd>P</kbd> print</span><span><kbd>Esc</kbd> cancel drag</span>
+      <span><kbd>H</kbd> sweetheart table</span>
     </div>
   </details>
 </aside>
@@ -567,7 +592,7 @@
       <p>Three steps to a finished floor plan.</p>
       <ol>
         <li>Import your guest list, one name per line</li>
-        <li>Add round tables of 6 to 10 seats</li>
+        <li>Add round tables of 6 to 10 seats, and a sweetheart table for the couple</li>
         <li>Drag guests to seats, or let Auto-fill do it</li>
       </ol>
       <div class="row">
@@ -615,6 +640,8 @@
   <div class="modal sm">
     <h2 id="groupModalTitle">Group</h2>
     <label>Name <input type="text" id="groupName" maxlength="40"></label>
+    <label>Sit near <select id="groupNear"></select></label>
+    <div class="hint">Auto-fill puts the two groups at neighboring tables.</div>
     <div class="row">
       <button id="groupCancel">Cancel</button>
       <button class="primary" id="groupSave">Save</button>
@@ -663,6 +690,33 @@
   const topRadius = n => 55 + (n - 6) * 6;
   const ringRadius = n => topRadius(n) + 40;
   const halfSize = n => ringRadius(n) + SEAT / 2 + 4;
+  // The sweetheart table: a long top with both seats side by side behind it
+  const COUPLE_W = 168, COUPLE_H = 76;
+  const isCouple = t => t.kind === 'couple';
+  // Half the width and height of a table's footprint, seats included
+  function extent(t) {
+    if (isCouple(t)) return { w: COUPLE_W / 2 + 4, h: (SEAT + 10 + COUPLE_H) / 2 + 4 };
+    const h = halfSize(t.seats);
+    return { w: h, h };
+  }
+  // Center of seat i, relative to the table's center
+  function seatPos(t, i) {
+    if (isCouple(t)) return { x: (i ? 1 : -1) * 40, y: -extent(t).h + 4 + SEAT / 2 };
+    const a = -Math.PI / 2 + (i / t.seats) * Math.PI * 2, rr = ringRadius(t.seats);
+    return { x: Math.cos(a) * rr, y: Math.sin(a) * rr };
+  }
+  // The tabletop's box, relative to the table's center
+  function topBox(t) {
+    if (isCouple(t)) return { x: -COUPLE_W / 2, y: extent(t).h - 4 - COUPLE_H, w: COUPLE_W, h: COUPLE_H };
+    const r = topRadius(t.seats);
+    return { x: -r, y: -r, w: r * 2, h: r * 2 };
+  }
+  // Would tables a and b touch? Round tables compare circles, the sweetheart table its box.
+  function overlaps(ax, ay, a, bx, by, b) {
+    if (!isCouple(a) && !isCouple(b)) return Math.hypot(ax - bx, ay - by) < halfSize(a.seats) + halfSize(b.seats) + 10;
+    const ea = extent(a), eb = extent(b);
+    return Math.abs(ax - bx) < ea.w + eb.w + 10 && Math.abs(ay - by) < ea.h + eb.h + 10;
+  }
 
   function seatedIds() {
     const s = new Set();
@@ -678,22 +732,24 @@
     if (!d || !Array.isArray(d.people) || !Array.isArray(d.tables)) throw new Error('Not a Table Layout file');
     const groups = (Array.isArray(d.groups) ? d.groups : [])
       .filter(g => g && g.id && typeof g.name === 'string')
-      .map((g, i) => ({ id: g.id, name: g.name, color: /^#[0-9a-f]{6}$/i.test(g.color) ? g.color : PALETTE[i % PALETTE.length] }));
+      .map((g, i) => ({ id: g.id, name: g.name, color: /^#[0-9a-f]{6}$/i.test(g.color) ? g.color : PALETTE[i % PALETTE.length], near: g.near }));
     const gids = new Set(groups.map(g => g.id));
+    for (const g of groups) if (!gids.has(g.near) || g.near === g.id) delete g.near;
     const people = d.people
       .filter(p => p && p.id && typeof p.name === 'string')
       .map(p => ({ id: p.id, name: p.name, group: gids.has(p.group) ? p.group : null }));
     const ids = new Set(people.map(p => p.id));
     const used = new Set();
     const tables = d.tables.map(t => {
-      const seats = clamp(parseInt(t.seats) || 8, MIN_SEATS, MAX_SEATS);
+      const couple = t.kind === 'couple';
+      const seats = couple ? 2 : clamp(parseInt(t.seats) || 8, MIN_SEATS, MAX_SEATS);
       const assign = Array.from({ length: seats }, (_, i) => {
         const pid = t.assign && t.assign[i];
         if (!ids.has(pid) || used.has(pid)) return null;   // drop unknown and double-seated people
         used.add(pid);
         return pid;
       });
-      return { id: t.id || uid(), label: String(t.label ?? ''), x: +t.x || 0, y: +t.y || 0, seats, assign };
+      return { id: t.id || uid(), ...(couple ? { kind: 'couple' } : {}), label: String(t.label ?? ''), x: +t.x || 0, y: +t.y || 0, seats, assign };
     });
     return { people, groups, tables };
   }
@@ -828,16 +884,18 @@
       const row = document.createElement('div');
       row.className = 'grow' + (groupFilter === g.id ? ' active' : '');
       row.dataset.gid = g.id;
-      row.title = 'Click to filter by this group';
+      const near = groupById(g.near);
+      row.title = 'Click to filter by this group · drag to change Auto-fill priority' + (near ? `\nSits near ${near.name}` : '');
       row.onmouseenter = () => hoverGroup(g.id);
       row.onmouseleave = () => hoverGroup(null);
-      row.innerHTML = `<input type="color" title="Group color"><span class="gname"></span><span class="gcount"></span>
-        <button class="ren" title="Rename group">${icon('pencil')}</button><button class="del" title="Delete group">${icon('trash')}</button>`;
+      row.innerHTML = `<svg class="grip"><use href="#i-grip"/></svg><input type="color" title="Group color"><span class="gname"></span><span class="gcount"></span>
+        <button class="ren" title="Rename group, or choose who it sits near">${icon('pencil')}</button><button class="del" title="Delete group">${icon('trash')}</button>`;
       const color = row.querySelector('input');
       color.value = g.color;
       color.addEventListener('input', () => { g.color = color.value; renderTables(); renderList(); });
       color.addEventListener('change', () => changed());
       row.querySelector('.gname').textContent = g.name;
+      if (near) row.querySelector('.gname').insertAdjacentHTML('beforeend', `<span class="gnear"> · near ${esc(near.name)}</span>`);
       row.querySelector('.gcount').textContent = counts.get(g.id) || 0;
       box.appendChild(row);
     }
@@ -959,27 +1017,30 @@
   }
 
   function buildTable(t, q, highlight) {
-    const half = halfSize(t.seats), tr = topRadius(t.seats), rr = ringRadius(t.seats);
+    const ext = extent(t), box = topBox(t), couple = isCouple(t);
     const el = document.createElement('div');
-    el.className = 'table';
+    el.className = 'table' + (couple ? ' couple' : '');
     el.dataset.tid = t.id;
     el.dataset.x = t.x;
     el.dataset.y = t.y;
-    el.style.width = el.style.height = half * 2 + 'px';
-    el.style.left = (t.x - half) + 'px';
-    el.style.top = (t.y - half) + 'px';
+    el.style.width = ext.w * 2 + 'px';
+    el.style.height = ext.h * 2 + 'px';
+    el.style.left = (t.x - ext.w) + 'px';
+    el.style.top = (t.y - ext.h) + 'px';
 
     const top = document.createElement('div');
     top.className = 'top';
-    top.style.width = top.style.height = tr * 2 + 'px';
-    top.style.left = top.style.top = (half - tr) + 'px';
+    top.style.width = box.w + 'px';
+    top.style.height = box.h + 'px';
+    top.style.left = (ext.w + box.x) + 'px';
+    top.style.top = (ext.h + box.y) + 'px';
     const filled = t.assign.filter(Boolean).length;
-    top.innerHTML = `
+    top.innerHTML = (couple ? `<svg class="heart l"><use href="#i-heart"/></svg><svg class="heart r"><use href="#i-heart"/></svg>` : '') + `
       <input class="label" maxlength="40" readonly tabindex="-1">
       <div class="sub">
         <div class="meta${filled === t.seats ? ' full' : ''}">${filled === t.seats ? 'Full' : `${filled} / ${t.seats}`}</div>
         <div class="controls">
-          <select title="Number of seats">${[6, 7, 8, 9, 10].map(n => `<option value="${n}" ${n === t.seats ? 'selected' : ''}>${n} seats</option>`).join('')}</select>
+          ${couple ? '' : `<select title="Number of seats">${[6, 7, 8, 9, 10].map(n => `<option value="${n}" ${n === t.seats ? 'selected' : ''}>${n} seats</option>`).join('')}</select>`}
           <button title="Delete table">${icon('trash')}</button>
         </div>
       </div>`;
@@ -1002,18 +1063,18 @@
       if (e.key === 'Escape') label.value = t.label;
       if (e.key === 'Enter' || e.key === 'Escape') label.blur();
     });
-    top.querySelector('select').addEventListener('change', e => resizeTable(t, +e.target.value));
+    top.querySelector('select')?.addEventListener('change', e => resizeTable(t, +e.target.value));
     top.querySelector('button').addEventListener('click', () => deleteTable(t));
     el.appendChild(top);
 
     for (let i = 0; i < t.seats; i++) {
-      const a = -Math.PI / 2 + (i / t.seats) * Math.PI * 2;
+      const at = seatPos(t, i);
       const seat = document.createElement('div');
       seat.className = 'seat';
       seat.dataset.tid = t.id;
       seat.dataset.idx = i;
-      seat.style.left = (half + Math.cos(a) * rr - SEAT / 2) + 'px';
-      seat.style.top = (half + Math.sin(a) * rr - SEAT / 2) + 'px';
+      seat.style.left = (ext.w + at.x - SEAT / 2) + 'px';
+      seat.style.top = (ext.h + at.y - SEAT / 2) + 'px';
       const p = t.assign[i] && personById(t.assign[i]);
       if (p) {
         seat.classList.add('filled');
@@ -1056,18 +1117,18 @@
   }
 
   // ---------- table operations ----------
-  // Can a table with `seats` sit at (x, y) without its seat ring touching another table's?
-  function spotFree(x, y, seats, skip) {
-    return state.tables.every(t => t === skip || Math.hypot(t.x - x, t.y - y) >= halfSize(t.seats) + halfSize(seats) + 10);
+  // Can a table shaped like `shape` ({seats, kind}) sit at (x, y) without touching another table?
+  function spotFree(x, y, shape, skip) {
+    return state.tables.every(t => t === skip || !overlaps(t.x, t.y, t, x, y, shape));
   }
   // Nearest free grid spot to (x, y), spiralling outward
-  function freeSpot(x, y, seats, skip) {
+  function freeSpot(x, y, shape, skip) {
     for (let ring = 0; ring < 160; ring++) {
       const n = Math.max(1, ring * 6);
       for (let k = 0; k < n; k++) {
         const a = (k / n) * Math.PI * 2;
         const tx = snap(x + Math.cos(a) * ring * G), ty = snap(y + Math.sin(a) * ring * G);
-        if (spotFree(tx, ty, seats, skip)) return { x: tx, y: ty };
+        if (spotFree(tx, ty, shape, skip)) return { x: tx, y: ty };
       }
     }
     return { x: snap(x), y: snap(y) };
@@ -1075,14 +1136,30 @@
 
   function addTable() {
     const seats = +$('newSize').value;
+    placeNew({ id: uid(), label: 'Table ' + nextTableNumber(), seats, assign: Array(seats).fill(null) });
+  }
+  // There is only one sweetheart table; asking for another shows the existing one
+  function addCouple() {
+    const c = state.tables.find(isCouple);
+    if (c) {
+      const r = viewport.getBoundingClientRect(), s = Math.max(view.s, 0.9);
+      animateView({ s, x: r.width / 2 - c.x * s, y: r.height / 2 - c.y * s });
+      flash('There is already a sweetheart table');
+      return;
+    }
+    placeNew({ id: uid(), kind: 'couple', label: 'Sweetheart', seats: 2, assign: [null, null] });
+  }
+  // Put a new table in the first free spot near the middle of the view
+  function placeNew(t) {
     const r = viewport.getBoundingClientRect();
-    const { x, y } = freeSpot((r.width / 2 - view.x) / view.s, (r.height / 2 - view.y) / view.s, seats);
-    state.tables.push({ id: uid(), label: 'Table ' + nextTableNumber(), x, y, seats, assign: Array(seats).fill(null) });
+    const { x, y } = freeSpot((r.width / 2 - view.x) / view.s, (r.height / 2 - view.y) / view.s, t);
+    t.x = x; t.y = y;
+    state.tables.push(t);
     changed();
     // If the free spot is off screen, bring it into view
-    const h = halfSize(seats) * view.s;
+    const e = extent(t), w = e.w * view.s, h = e.h * view.s;
     const sx = x * view.s + view.x, sy = y * view.s + view.y;
-    if (sx - h < 0 || sy - h < 0 || sx + h > r.width || sy + h > r.height)
+    if (sx - w < 0 || sy - h < 0 || sx + w > r.width || sy + h > r.height)
       animateView({ s: view.s, x: r.width / 2 - x * view.s, y: r.height / 2 - y * view.s });
   }
 
@@ -1096,9 +1173,9 @@
     const rows = Math.ceil(ts.length / cols);
     const colW = Array(cols).fill(0), rowH = Array(rows).fill(0);
     ts.forEach((t, i) => {
-      const d = halfSize(t.seats) * 2 + G;
-      colW[i % cols] = Math.max(colW[i % cols], d);
-      rowH[Math.floor(i / cols)] = Math.max(rowH[Math.floor(i / cols)], d);
+      const e = extent(t);
+      colW[i % cols] = Math.max(colW[i % cols], e.w * 2 + G);
+      rowH[Math.floor(i / cols)] = Math.max(rowH[Math.floor(i / cols)], e.h * 2 + G);
     });
     const b = bounds();
     let moved = false;
@@ -1202,19 +1279,28 @@
   }
 
   // ---------- auto-fill ----------
-  // Seat everyone in the list. Groups are placed largest first; each group goes to
-  // tables already holding its members, then the best-fitting table, and is only
-  // split across tables when it can't fit at one. Ungrouped people fill what's left.
+  // Seat everyone in the list, working outward from the sweetheart table (or the middle of
+  // the floor). Groups go in sidebar order, so the top group gets the closest tables, and a
+  // group's "sit near" partners are placed right after it, next to it. A group goes where it
+  // already sits, then to the best cluster of neighboring tables: close to its target, few
+  // seats left over, not spread out. Ungrouped guests fill what's left, closest first.
+  // The sweetheart table is left for the couple, who are seated by hand.
   function autoFill() {
     const seated = seatedIds();
     const pending = state.people.filter(p => !seated.has(p.id));
     if (!pending.length) { flash('Everyone is already seated'); return; }
-    if (!state.tables.length) { flash('Add some tables first'); return; }
+    const tables = state.tables.filter(t => !isCouple(t));
+    if (!tables.length) { flash('Add some round tables first'); return; }
 
     const groupOf = pid => personById(pid)?.group || null;
     const free = t => t.assign.filter(x => !x).length;
     const countGroup = (t, gid) => t.assign.filter(pid => pid && groupOf(pid) === gid).length;
     const foreign = (t, gid) => t.assign.filter(pid => pid && groupOf(pid) !== gid).length;
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const centroid = ts => ({ x: ts.reduce((s, t) => s + t.x, 0) / ts.length, y: ts.reduce((s, t) => s + t.y, 0) / ts.length });
+    const home = state.tables.find(isCouple) || centroid(tables);
+    // About one table-to-table step, so distances and seat counts can be weighed together
+    const STEP = halfSize(8) * 2 + G;
 
     const buckets = new Map();
     const loose = [];
@@ -1225,35 +1311,61 @@
       } else loose.push(p.id);
     }
 
-    let unplaced = 0;
-    const ordered = [...buckets.entries()].sort((a, b) => b[1].length - a[1].length);
     // Pass 1: everyone joins tables where their group already sits, before any
     // other group can claim those seats.
-    for (const entry of ordered) {
-      const gid = entry[0];
-      const homes = state.tables
-        .filter(t => free(t) && countGroup(t, gid))
-        .sort((a, b) => countGroup(b, gid) - countGroup(a, gid));
-      for (const t of homes) if (entry[1].length) entry[1] = seatInto(t, entry[1], gid);
-    }
-    // Pass 2: the rest of each group goes to the tightest table that holds it whole,
-    // or is split across the emptiest tables.
-    for (const [gid, ids] of ordered) {
+    for (const [gid, ids] of buckets) {
       let rest = ids;
-      while (rest.length) {
-        const open = state.tables.filter(t => free(t) > 0);
-        if (!open.length) break;
-        const fitting = open.filter(t => free(t) >= rest.length);
-        const t = fitting.length
-          ? fitting.sort((a, b) => free(a) - free(b) || foreign(a, gid) - foreign(b, gid))[0]
-          : open.sort((a, b) => free(b) - free(a))[0];
-        rest = seatInto(t, rest, gid);
+      const homes = tables.filter(t => free(t) && countGroup(t, gid)).sort((a, b) => countGroup(b, gid) - countGroup(a, gid));
+      for (const t of homes) if (rest.length) rest = seatInto(t, rest, gid);
+      buckets.set(gid, rest);
+    }
+
+    // The best set of neighboring open tables for `need` guests. A cluster is grown from
+    // every open table in turn by adding the nearest open table until the group fits.
+    const pickCluster = (need, target, gid) => {
+      const open = tables.filter(t => free(t) > 0);
+      let best = [], bestScore = Infinity;
+      for (const seed of open) {
+        const cl = [seed], rest = open.filter(t => t !== seed);
+        let seats = free(seed);
+        while (seats < need && rest.length) {
+          let k = 0, kd = Infinity;
+          rest.forEach((t, i) => { const d = Math.min(...cl.map(c => dist(c, t))); if (d < kd) { kd = d; k = i; } });
+          const t = rest.splice(k, 1)[0];
+          cl.push(t);
+          seats += free(t);
+        }
+        const c = centroid(cl);
+        const score = dist(c, target) / STEP                         // close to the target
+          + Math.max(0, seats - need) * 0.3                          // few seats left over
+          + Math.max(0, need - seats) * 10                           // fits the whole group
+          + cl.reduce((s, t) => s + dist(t, c), 0) / STEP * 0.5      // tables close together
+          + cl.reduce((s, t) => s + foreign(t, gid), 0) * 0.05;      // prefer tables to itself
+        if (score < bestScore) { bestScore = score; best = cl; }
       }
+      return best.sort((a, b) => dist(a, target) - dist(b, target));
+    };
+
+    // Pass 2: groups in sidebar order, each followed by the groups it sits near
+    const partners = g => state.groups.filter(h => h !== g && (h.near === g.id || g.near === h.id));
+    const order = [], seen = new Set();
+    const visit = g => { if (seen.has(g)) return; seen.add(g); order.push(g); partners(g).forEach(visit); };
+    state.groups.forEach(visit);
+    const tablesOf = gid => tables.filter(t => countGroup(t, gid));
+    let unplaced = 0;
+    for (const g of order) {
+      let rest = buckets.get(g.id);
+      if (!rest?.length) continue;
+      // Aim for where the group already sits, else for a seated partner, else for the couple
+      let near = tablesOf(g.id);
+      if (!near.length) near = partners(g).flatMap(h => tablesOf(h.id));
+      const target = near.length ? centroid(near) : home;
+      for (const t of pickCluster(rest.length, target, g.id)) if (rest.length) rest = seatInto(t, rest, g.id);
       unplaced += rest.length;
     }
 
     let rest = loose;
-    for (const t of sortedTables()) if (rest.length) rest = seatInto(t, rest, null);
+    for (const t of [...tables].sort((a, b) => dist(a, home) - dist(b, home))) if (rest.length) rest = seatInto(t, rest, null);
     unplaced += rest.length;
 
     changed();
@@ -1320,16 +1432,21 @@
   let groupModalTarget = null;
   function openGroupModal(g) {
     groupModalTarget = g;
-    $('groupModalTitle').textContent = g ? 'Rename group' : 'New group';
+    $('groupModalTitle').textContent = g ? 'Edit group' : 'New group';
     $('groupName').value = g ? g.name : '';
+    $('groupNear').innerHTML = '<option value="">(no preference)</option>' +
+      state.groups.filter(h => h !== g).map(h => `<option value="${h.id}">${esc(h.name)}</option>`).join('');
+    $('groupNear').value = g?.near || '';
     openModal('groupModal');
     $('groupName').focus();
   }
   $('groupSave').onclick = () => {
     const name = $('groupName').value.trim();
     if (!name) return;
-    if (groupModalTarget) groupModalTarget.name = name;
-    else createGroup(name);
+    const g = groupModalTarget || groupById(createGroup(name));
+    g.name = name;
+    const near = $('groupNear').value;
+    if (near && near !== g.id) g.near = near; else delete g.near;
     closeModals();
     changed();
   };
@@ -1337,13 +1454,51 @@
   $('groupName').addEventListener('keydown', e => { if (e.key === 'Enter') $('groupSave').click(); });
   $('addGroup').onclick = () => openGroupModal(null);
 
+  // Drag a group row up or down to change its Auto-fill priority
+  let groupDragged = false;
+  $('groups').addEventListener('pointerdown', e => {
+    const row = e.target.closest('.grow');
+    if (e.button !== 0 || !row || e.target.closest('button, input')) return;
+    e.preventDefault();
+    const box = $('groups'), before = state.groups.map(g => g.id).join();
+    track(e, {
+      start() {
+        row.classList.add('lifted');
+        document.body.classList.add('dragging-group');
+        hoverGroup(null);
+      },
+      frame(ev) {
+        // Move the row in front of the first row whose middle is below the pointer
+        const rows = [...box.querySelectorAll('.grow')].filter(r => r !== row);
+        const next = rows.find(r => { const b = r.getBoundingClientRect(); return ev.clientY < b.top + b.height / 2; });
+        if (next ? row.nextElementSibling !== next : box.lastElementChild !== row) box.insertBefore(row, next || null);
+        // Keep the row in view in a scrolling list
+        const b = box.getBoundingClientRect();
+        if (ev.clientY < b.top + 12) box.scrollTop -= 8; else if (ev.clientY > b.bottom - 12) box.scrollTop += 8;
+      },
+      end(ev) {
+        row.classList.remove('lifted');
+        document.body.classList.remove('dragging-group');
+        groupDragged = true;
+        setTimeout(() => { groupDragged = false; });
+        const order = [...box.querySelectorAll('.grow')].map(r => r.dataset.gid);
+        if (!ev || order.join() === before) { renderGroups(); return; }
+        state.groups.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+        changed();
+        const g = groupById(row.dataset.gid);
+        flash(`${g.name} is now #${order.indexOf(g.id) + 1} for Auto-fill`, { undo: true });
+      },
+    });
+  });
+
   $('groups').addEventListener('click', e => {
     const row = e.target.closest('.grow');
-    if (!row || e.target.matches('input[type=color]')) return;
+    if (!row || groupDragged || e.target.matches('input[type=color]')) return;
     const g = groupById(row.dataset.gid);
     if (e.target.closest('.del')) {
       state.groups = state.groups.filter(x => x !== g);
       for (const p of state.people) if (p.group === g.id) p.group = null;
+      for (const h of state.groups) if (h.near === g.id) delete h.near;
       if (groupFilter === g.id) groupFilter = null;
       changed();
       flash(`Deleted group ${g.name}`, { undo: true });
@@ -1565,20 +1720,20 @@
   }
 
   function tableDrag(e, t, el) {
-    const ox = t.x, oy = t.y, half = halfSize(t.seats), grab = toWorld(e.clientX, e.clientY);
+    const ox = t.x, oy = t.y, ext = extent(t), grab = toWorld(e.clientX, e.clientY);
     let stopPan;
     const place = (x, y) => {
       t.x = x; t.y = y;
       el.dataset.x = x; el.dataset.y = y;
-      el.style.left = (x - half) + 'px';
-      el.style.top = (y - half) + 'px';
+      el.style.left = (x - ext.w) + 'px';
+      el.style.top = (y - ext.h) + 'px';
     };
     const frame = ev => {
       const w = toWorld(ev.clientX, ev.clientY);
       const x = snap(ox + w.x - grab.x), y = snap(oy + w.y - grab.y);
       if (x === t.x && y === t.y) return;
       place(x, y);
-      el.classList.toggle('overlap', !spotFree(x, y, t.seats, t));
+      el.classList.toggle('overlap', !spotFree(x, y, t, t));
     };
     track(e, {
       start(pointer) {
@@ -1591,8 +1746,8 @@
         stopPan();
         el.classList.remove('dragging', 'overlap');
         if (!ev) place(ox, oy);                       // Esc: put it back
-        else if (!spotFree(t.x, t.y, t.seats, t)) {
-          const s = freeSpot(t.x, t.y, t.seats, t);
+        else if (!spotFree(t.x, t.y, t, t)) {
+          const s = freeSpot(t.x, t.y, t, t);
           t.x = s.x; t.y = s.y;                       // render() glides it out of the way
         }
         if (t.x !== ox || t.y !== oy) changed();
@@ -1733,9 +1888,9 @@
     if (!state.tables.length) return null;
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const t of state.tables) {
-      const h = halfSize(t.seats);
-      x0 = Math.min(x0, t.x - h); y0 = Math.min(y0, t.y - h);
-      x1 = Math.max(x1, t.x + h); y1 = Math.max(y1, t.y + h);
+      const e = extent(t);
+      x0 = Math.min(x0, t.x - e.w); y0 = Math.min(y0, t.y - e.h);
+      x1 = Math.max(x1, t.x + e.w); y1 = Math.max(y1, t.y + e.h);
     }
     return { x0, y0, x1, y1 };
   }
@@ -1752,6 +1907,7 @@
 
   // ---------- toolbar ----------
   $('addTable').onclick = addTable;
+  $('addCouple').onclick = addCouple;
   $('hintAdd').onclick = addTable;
   $('hintImport').onclick = () => $('openImport').click();
   $('autoFill').onclick = autoFill;
@@ -1782,6 +1938,7 @@
     if (mod || e.altKey) return;
     const keys = {
       t: addTable,
+      h: addCouple,
       i: () => $('openImport').click(),
       a: autoFill,
       f: fit,
@@ -1832,7 +1989,7 @@
 
   // ---------- export / print ----------
   function sortedTables() {
-    return [...state.tables].sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+    return [...state.tables].sort((a, b) => isCouple(b) - isCouple(a) || a.label.localeCompare(b.label, undefined, { numeric: true }));
   }
   // Quote when needed; a leading = + - @ would make spreadsheets treat a name as a formula
   const csvCell = v => {
@@ -1863,12 +2020,15 @@
       const pad = 20;
       svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x0 - pad} ${b.y0 - pad} ${b.x1 - b.x0 + pad * 2} ${b.y1 - b.y0 + pad * 2}" font-family="system-ui, sans-serif">`;
       for (const t of state.tables) {
-        const tr = topRadius(t.seats), rr = ringRadius(t.seats);
-        svg += `<circle cx="${t.x}" cy="${t.y}" r="${tr}" fill="#f1e8d8" stroke="#8a7350" stroke-width="2"/>`;
-        svg += `<text x="${t.x}" y="${t.y + 5}" text-anchor="middle" font-size="15" font-weight="600">${esc(t.label)}</text>`;
+        const bx = topBox(t);
+        svg += isCouple(t)
+          ? `<rect x="${t.x + bx.x}" y="${t.y + bx.y}" width="${bx.w}" height="${bx.h}" rx="16" fill="#f1e8d8" stroke="#8a7350" stroke-width="2"/>`
+          : `<circle cx="${t.x}" cy="${t.y}" r="${bx.w / 2}" fill="#f1e8d8" stroke="#8a7350" stroke-width="2"/>`;
+        const ly = t.y + bx.y + bx.h / 2 + 5;
+        svg += `<text x="${t.x}" y="${ly}" text-anchor="middle" font-size="15" font-weight="600">${isCouple(t) ? '♥ ' : ''}${esc(t.label)}${isCouple(t) ? ' ♥' : ''}</text>`;
         for (let i = 0; i < t.seats; i++) {
-          const a = -Math.PI / 2 + (i / t.seats) * Math.PI * 2;
-          const sx = t.x + Math.cos(a) * rr, sy = t.y + Math.sin(a) * rr;
+          const at = seatPos(t, i);
+          const sx = t.x + at.x, sy = t.y + at.y;
           const p = t.assign[i] && personById(t.assign[i]);
           const g = p && groupById(p.group);
           svg += `<circle cx="${sx}" cy="${sy}" r="${SEAT / 2}" fill="${g ? g.color + '22' : '#fff'}" stroke="${g ? g.color : '#999'}" stroke-width="1.5"/>`;

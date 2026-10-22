@@ -15,6 +15,7 @@ The layout autosaves to the browser's localStorage (key `tableLayout.v1`). **Sav
 | Action | How |
 |---|---|
 | Add a table | Pick a seat count (6–10) in the toolbar, then **+ Add table** (or press T) |
+| Add the couple's table | **♥ Sweetheart** (or H) adds a long table with two seats side by side. There is only one; pressing it again shows the existing one |
 | Move a table | Drag its tabletop. It snaps to a 20px grid, and if you drop it on another table it slides to the nearest free spot |
 | Tidy up | **Arrange** (grid icon, or G) puts all tables in a neat grid in name order |
 | Rename a table | Double-click the table's name. Enter saves and Esc cancels |
@@ -27,15 +28,17 @@ The layout autosaves to the browser's localStorage (key `tableLayout.v1`). **Sav
 | Edit a person | Right-click a name (or double-click it in the list) to change the name or group, or to delete |
 | Tag a group | Drag a name onto a group row in the sidebar |
 | Filter by group | Click a group row (click again to clear). Hover a group to light up its seats |
+| Group priority | Drag a group row up or down. The top group gets the tables closest to the sweetheart table |
+| Sit near | Click a group's pencil and pick **Sit near**. Auto-fill puts the two groups at neighboring tables |
 | Find someone | Type in the search box (or press /). Seats that don't match are dimmed, and the seated matches are listed; click one to fly to that seat |
-| Auto-fill | **Auto-fill** (or A) seats everyone in the list and keeps groups together |
+| Auto-fill | **Auto-fill** (or A) seats everyone in the list, keeps groups together and places them by priority, working outward from the sweetheart table |
 | Pan and zoom | Drag the empty floor, or scroll to zoom. Shift+scroll pans sideways and touchpad scrolling pans. The − + and Fit buttons (F) also work, and dragging near an edge pans the floor |
 | Undo and redo | The toolbar buttons, Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z), or **Undo** in the message that pops up |
 | Export | **CSV** (Table, Seat, Name, Group) or **Print** (floor plan plus guest list by table) |
 
 ### Keyboard shortcuts
 
-T add table · I import · A auto-fill · F fit · G arrange · / search · + − 0 zoom ·
+T add table · H sweetheart table · I import · A auto-fill · F fit · G arrange · / search · + − 0 zoom ·
 Ctrl+Z / Ctrl+Y undo/redo · Ctrl+S save · Ctrl+O open · Ctrl+P print · Esc cancel/close · ? tips.
 The single-letter shortcuts are ignored while you're typing in a text field.
 
@@ -52,16 +55,27 @@ The single-letter shortcuts are ignored while you're typing in a text field.
 - **Groups**: each person is in at most one group. Colors cycle through a 10-color palette, and you
   can change one with the swatch. Deleting a group ungroups its members and keeps the people.
   Ungrouped seats are gray.
-- **Auto-fill**:
-  1. Anyone already seated stays where they are.
-  2. Groups go first, largest first. If someone in a group is already seated, the rest of the
-     group joins that table first. Every group gets this pass before any group claims a new table.
-  3. The rest of a group goes to the table with the fewest free seats that can still hold the
-     whole group. Ties go to tables with fewer people from other groups. If no table can hold the
-     group, it is split across the emptiest tables.
-  4. Groups sit in neighboring seats, starting next to members who are already seated.
-  5. Ungrouped people fill the remaining seats, table by table in name order.
-  6. Anyone left without a seat stays in the list, and a message says how many more seats are needed.
+- **Auto-fill** works from where the tables actually are:
+  1. Anyone already seated stays where they are. The sweetheart table is never auto-filled;
+     seat the couple by hand.
+  2. The "center" is the sweetheart table. Without one, it is the middle of all the tables.
+  3. If someone in a group is already seated, the rest of the group joins those tables first.
+     Every group gets this pass before any group claims a new table.
+  4. Groups are then placed in sidebar order, so the top group gets the tables closest to the
+     center. A group's "sit near" partner is placed right after it.
+  5. Each group aims at where it already sits, else at its seated "sit near" partner, else at the
+     center. It takes the best **cluster of neighboring tables** with enough free seats. The best
+     cluster is close to that aim, wastes few seats, is tightly packed, and has few other groups'
+     guests. A group that fits at one table normally gets one table.
+  6. Within the cluster, the closest table fills first, and the group sits in neighboring seats.
+  7. Ungrouped people fill the remaining seats, closest tables to the center first.
+  8. Anyone left without a seat stays in the list, and a message says how many more seats are needed.
+- **Sit near** is one choice per group, and either side of the pair counts. Deleting a group
+  clears any "sit near" that pointed to it.
+- **The sweetheart table** has 2 seats, can't be resized, and counts toward the seat totals.
+  It comes first in Arrange, the CSV and the printed lists. It collides with other tables by its
+  rectangle, not a circle.
+- **Reordering groups** can be undone and is saved in the file. Esc during the drag puts the row back.
 - **Undo history** keeps 200 steps in memory and resets when the page reloads. Zoom and pan
   are saved but are not undo steps.
 - **The group filter and search** are not saved.
@@ -100,7 +114,11 @@ The single-letter shortcuts are ignored while you're typing in a text field.
 - Seating:
   - list→seat, replacing an occupied seat, seat↔seat swaps;
   - Esc while dragging;
-  - auto-fill with groups (214 people seated in 6ms).
+  - auto-fill with groups (214 people seated in 6ms);
+  - placement-aware auto-fill: top group nearest the sweetheart table, "sit near" partner on
+    the neighboring table, reordering groups changes the result.
+- Sweetheart table: adding, the second-press message, dragging it onto a table, print.
+- Group drag-reorder, the "sit near" dialog, deleting a group that is someone's partner, Undo.
 - Undo/redo, Save→Open round trip, CSV, print view with 28 tables.
 - Edit dialog with a new group, drag-to-group tagging.
 - Search:
