@@ -23,7 +23,7 @@ The layout autosaves to the browser's localStorage (key `tableLayout.v1`). **Sav
 | Import names | **Import** (or I). One name per line, optionally into a group. Ctrl+Enter imports |
 | Seat someone | Drag a name from the list onto a seat |
 | Move or swap | Drag a seated person onto another seat. If that seat is taken, the two people swap |
-| Unseat | Double-click a seated name, or drag it back onto the sidebar |
+| Unseat | Double-click a seated name, or drag it back onto the sidebar. The eraser button next to **Auto-fill** unseats everyone |
 | Cancel a drag | Press Esc while dragging |
 | Edit a person | Right-click a name (or double-click it in the list) to change the name or group, or to delete |
 | Tag a group | Drag a name onto a group row in the sidebar |
@@ -76,6 +76,9 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   It comes first in Arrange, the CSV and the printed lists. It collides with other tables by its
   rectangle, not a circle.
 - **Reordering groups** can be undone and is saved in the file. Esc during the drag puts the row back.
+- **Clear seats** (eraser next to Auto-fill) empties every seat, the sweetheart table's too, and
+  keeps tables, guests and groups. It doesn't ask first, because the message offers Undo. It is
+  grayed out when nobody is seated. It has no keyboard shortcut, so it can't be pressed by accident.
 - **Undo history** keeps 200 steps in memory and resets when the page reloads. Zoom and pan
   are saved but are not undo steps.
 - **The group filter and search** are not saved.
@@ -118,6 +121,7 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   - placement-aware auto-fill: top group nearest the sweetheart table, "sit near" partner on
     the neighboring table, reordering groups changes the result.
 - Sweetheart table: adding, the second-press message, dragging it onto a table, print.
+- Clear seats, then Undo.
 - Group drag-reorder, the "sit near" dialog, deleting a group that is someone's partner, Undo.
 - Undo/redo, Save→Open round trip, CSV, print view with 28 tables.
 - Edit dialog with a new group, drag-to-group tagging.
