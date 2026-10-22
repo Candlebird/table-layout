@@ -6,183 +6,394 @@
 <title>Table Layout</title>
 <style>
   :root {
-    --bg: #f4f5f7;
+    --bg: #f5f4f0;
+    --floor: #f8f7f3;
+    --floor-dot: #dcd8cf;
+    --floor-dot-major: #c6c0b4;
     --panel: #ffffff;
-    --border: #d9dce1;
-    --text: #1f2933;
-    --muted: #6b7280;
-    --accent: #2f6fde;
-    --accent-soft: #dce8fb;
-    --table: #e9dcc6;
-    --table-edge: #b89b6e;
-    --seat: #ffffff;
-    --seat-edge: #b8bec8;
-    --seat-filled: #f4f5f7;
-    --danger: #c43d3d;
-    --hit: #ffe58a;
+    --panel-2: #faf9f7;
+    --sunken: #f1efeb;
+    --border: #e6e3dd;
+    --border-strong: #d4d0c8;
+    --text: #1c1e21;
+    --text-2: #474b52;
+    --muted: #82868d;
+    --accent: #4057d6;
+    --accent-hover: #3247bd;
+    --accent-soft: #ebeefc;
+    --ring: rgba(64, 87, 214, .28);
+    --danger: #d0453f;
+    --danger-soft: #fdeceb;
+    --ok: #2f9e58;
+    --hit: #ffc531;
+    --wood-1: #f5e9d3;
+    --wood-2: #e8d5b2;
+    --wood-3: #d6bc90;
+    --wood-text: #5b4526;
+    --seat-edge: #ccd0d6;
+    --ungrouped: #8b929c;
+    --shadow-sm: 0 1px 2px rgba(28, 30, 33, .06), 0 1px 3px rgba(28, 30, 33, .08);
+    --shadow-md: 0 6px 16px rgba(28, 30, 33, .10), 0 2px 4px rgba(28, 30, 33, .06);
+    --shadow-lg: 0 20px 50px rgba(28, 30, 33, .22), 0 6px 16px rgba(28, 30, 33, .10);
+    --radius: 8px;
+    --side: 288px;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; }
   body {
-    font: 14px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 13.5px/1.4 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
     color: var(--text);
     background: var(--bg);
     display: grid;
     grid-template-rows: auto 1fr;
-    grid-template-columns: 270px 1fr;
+    grid-template-columns: var(--side) 1fr;
     overflow: hidden;
     user-select: none;
+    -webkit-font-smoothing: antialiased;
   }
   button, select, input, textarea { font: inherit; color: inherit; }
-  button {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
-    padding: 5px 10px; cursor: pointer;
+  .i {
+    width: 16px; height: 16px; flex: none;
+    fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
   }
-  button:hover:not(:disabled) { border-color: var(--accent); }
-  button:disabled { opacity: .45; cursor: default; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button.danger:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
-  select { border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; background: var(--panel); }
-  input[type=text], input[type=search] { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; user-select: text; }
+
+  /* Controls */
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 32px; padding: 0 12px; white-space: nowrap;
+    background: var(--panel); color: var(--text-2); font-weight: 500;
+    border: 1px solid var(--border-strong); border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s, box-shadow .15s, color .15s, transform .1s, opacity .15s;
+  }
+  button:hover:not(:disabled) { background: var(--panel-2); border-color: #bcb7ad; color: var(--text); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    box-shadow: 0 1px 2px rgba(64, 87, 214, .35), inset 0 1px 0 rgba(255, 255, 255, .14);
+  }
+  button.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+  button.danger-solid { background: var(--danger); border-color: var(--danger); color: #fff; }
+  button.danger-solid:hover:not(:disabled) { background: #b8372f; border-color: #b8372f; color: #fff; }
+  button.icon { width: 32px; padding: 0; }
+  button.ghost { background: transparent; border-color: transparent; }
+  button.ghost:hover:not(:disabled) { background: var(--sunken); border-color: transparent; }
+  button.ghost.danger:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }
+  button.mini { height: 24px; padding: 0 8px; font-size: 12px; gap: 4px; }
+  button.mini .i { width: 13px; height: 13px; }
+  :focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring) !important; }
+  select {
+    appearance: none; height: 32px; padding: 0 28px 0 10px;
+    border: 1px solid var(--border-strong); border-radius: var(--radius); background-color: var(--panel); cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2382868d' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  select:hover { border-color: #bcb7ad; }
+  input[type=text], input[type=search] {
+    height: 34px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: var(--radius);
+    background: var(--panel); user-select: text; transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus, input[type=search]:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+  input::placeholder, textarea::placeholder { color: #a7aab0; }
+  kbd {
+    font: 600 10.5px/1 ui-monospace, "Cascadia Mono", Consolas, monospace; color: var(--text-2);
+    padding: 2px 5px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 4px; background: var(--panel);
+  }
 
   /* Toolbar */
   header {
-    grid-column: 1 / -1;
-    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-    padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--border);
+    grid-column: 1 / -1; position: relative; z-index: 5;
+    display: flex; align-items: center; gap: 10px;
+    height: 56px; padding: 0 14px;
+    background: var(--panel); border-bottom: 1px solid var(--border);
   }
-  header h1 { font-size: 16px; margin: 0 12px 0 0; }
-  header .group { display: flex; align-items: center; gap: 6px; padding-right: 10px; border-right: 1px solid var(--border); }
-  header .group:last-of-type { border-right: 0; }
-  #zoomLabel { min-width: 44px; text-align: center; color: var(--muted); }
-  #status { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; width: calc(var(--side) - 24px); flex: none; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(140deg, #6175ef, #3a4cc0);
+    box-shadow: 0 2px 6px rgba(64, 87, 214, .35), inset 0 1px 0 rgba(255, 255, 255, .25);
+  }
+  .brand .mark .i { width: 19px; height: 19px; stroke-width: 1.7; }
+  .brand h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
+  .brand h1 span { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+  .add { display: flex; }
+  .add select { border-radius: var(--radius) 0 0 var(--radius); border-right: 0; }
+  .add button { border-radius: 0 var(--radius) var(--radius) 0; }
+  .seg { display: flex; align-items: center; gap: 2px; padding: 3px; background: var(--sunken); border-radius: 10px; }
+  .seg button { height: 28px; border: 0; border-radius: 7px; background: transparent; padding: 0 10px; }
+  .seg button.icon { width: 30px; padding: 0; }
+  .seg button:hover:not(:disabled) { background: var(--panel); color: var(--text); box-shadow: var(--shadow-sm); }
+  #zoomLabel { min-width: 50px; padding: 0 4px; font-size: 12px; font-variant-numeric: tabular-nums; }
+  header .spacer { flex: 1; }
 
   /* Sidebar */
   aside {
+    position: relative; z-index: 4;
     background: var(--panel); border-right: 1px solid var(--border);
     display: flex; flex-direction: column; min-height: 0;
   }
-  aside .top { padding: 10px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border); }
-  aside .top .row { display: flex; gap: 6px; }
-  aside .top .row button { flex: 1; }
-  aside input[type=search] { width: 100%; }
-  #counts { font-size: 12px; color: var(--muted); }
+  aside section { padding: 14px; border-bottom: 1px solid var(--border); }
+  .side-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .side-actions button { height: 36px; }
 
-  #groupsBox { border-bottom: 1px solid var(--border); padding: 8px 10px; }
-  #groupsBox .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  #groupsBox .head span { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-  #groupsBox .head button { padding: 1px 8px; font-size: 12px; }
-  #groups { display: flex; flex-direction: column; gap: 2px; max-height: 170px; overflow-y: auto; }
-  #groups .hint { color: var(--muted); font-size: 12px; }
+  .stats .stat-main { display: flex; align-items: baseline; gap: 5px; color: var(--muted); }
+  .stats .stat-main b { font-size: 24px; line-height: 1; font-weight: 700; letter-spacing: -.02em; color: var(--text); font-variant-numeric: tabular-nums; }
+  .stats .stat-main .pct { margin-left: auto; font-weight: 650; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stats .bar { height: 6px; margin: 10px 0; background: var(--sunken); border-radius: 99px; overflow: hidden; }
+  .stats .bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #7686ec); transition: width .4s cubic-bezier(.2, .8, .3, 1), background .3s; }
+  .stats .bar.done i { background: var(--ok); }
+  .stats.done .pct { color: var(--ok); }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { font-size: 11.5px; padding: 2px 9px; border-radius: 99px; background: var(--sunken); color: var(--text-2); }
+  .pill b { font-weight: 650; font-variant-numeric: tabular-nums; }
+  .pill.warn { background: #fff1d4; color: #8a5800; }
+
+  .search { position: relative; }
+  .search .i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; width: 15px; height: 15px; }
+  .search input { width: 100%; padding-left: 33px; }
+  .search input::-webkit-search-cancel-button { cursor: pointer; }
+
+  .sec-head { display: flex; align-items: center; justify-content: space-between; min-height: 24px; margin-bottom: 8px; }
+  .sec-head > span { font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+  .sec-head em { font-style: normal; margin-left: 4px; padding: 1px 7px; border-radius: 99px; background: var(--sunken); color: var(--text-2); letter-spacing: 0; }
+
+  #groups { display: flex; flex-direction: column; gap: 1px; max-height: 188px; overflow-y: auto; margin: 0 -6px; padding: 0 6px; }
+  #groups .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
   .grow {
-    display: flex; align-items: center; gap: 6px; padding: 3px 4px; border-radius: 5px; cursor: pointer;
-    border: 1px solid transparent;
+    display: flex; align-items: center; gap: 9px; height: 32px; padding: 0 4px 0 7px; flex: none;
+    border-radius: 7px; border: 1px solid transparent; cursor: pointer; transition: background-color .12s, border-color .12s;
   }
-  .grow:hover { background: #f3f5f8; }
-  .grow.active { border-color: var(--accent); background: var(--accent-soft); }
-  .grow.drop-hover { background: var(--accent-soft); border-color: var(--accent); }
-  .grow input[type=color] { width: 20px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; flex: none; }
-  .grow .gname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .grow .gcount { color: var(--muted); font-size: 12px; }
-  .grow button { border: 0; padding: 0 4px; background: none; color: var(--muted); visibility: hidden; }
-  .grow:hover button { visibility: visible; }
-  .grow button:hover { color: var(--accent); }
-  .grow button.del:hover { color: var(--danger); }
+  .grow:hover { background: var(--sunken); }
+  .grow.active { background: var(--accent-soft); border-color: rgba(64, 87, 214, .35); }
+  .grow.drop-hover { background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+  .grow input[type=color] {
+    width: 16px; height: 16px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; flex: none;
+    box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px rgba(0, 0, 0, .08);
+  }
+  .grow input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+  .grow input[type=color]::-webkit-color-swatch { border: 0; border-radius: 50%; }
+  .grow input[type=color]::-moz-color-swatch { border: 0; border-radius: 50%; }
+  .grow .gname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .grow .gcount { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; padding: 0 4px; }
+  .grow button { width: 24px; height: 24px; padding: 0; border: 0; background: none; color: var(--muted); opacity: 0; }
+  .grow button .i { width: 14px; height: 14px; }
+  .grow:hover button { opacity: 1; }
+  .grow button:hover:not(:disabled) { background: var(--panel); color: var(--accent); box-shadow: var(--shadow-sm); }
+  .grow button.del:hover:not(:disabled) { color: var(--danger); }
 
+  .list-head { padding-bottom: 6px !important; border-bottom: 0 !important; }
   #list {
-    flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px;
+    flex: 1; min-height: 0; overflow-y: auto; padding: 4px 14px 14px;
+    display: flex; flex-direction: column; gap: 4px; transition: background-color .15s, box-shadow .15s;
   }
-  #list.drop-hover { background: var(--accent-soft); }
-  #list .empty { color: var(--muted); font-size: 13px; text-align: center; margin-top: 20px; }
+  #list.drop-hover { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); }
+  #list .empty { color: var(--muted); font-size: 13px; text-align: center; margin: 28px 10px; line-height: 1.5; }
+  #list .empty b { display: block; color: var(--text-2); font-size: 14px; margin-bottom: 2px; }
   .chip {
-    display: flex; align-items: center; justify-content: space-between; gap: 6px;
-    padding: 5px 8px; border: 1px solid var(--border); border-left-width: 5px; border-radius: 6px; background: var(--panel);
-    cursor: grab;
+    --gc: transparent;
+    display: flex; align-items: center; gap: 9px; flex: none;
+    height: 34px; padding: 0 4px 0 11px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    cursor: grab; transition: border-color .12s, box-shadow .12s, opacity .15s;
   }
-  .chip:hover { border-color: var(--accent); }
-  .chip .x { border: 0; padding: 0 4px; color: var(--muted); background: none; visibility: hidden; }
-  .chip:hover .x { visibility: visible; }
-  .chip .x:hover { color: var(--danger); }
-  aside .help { font-size: 11px; color: var(--muted); padding: 8px 10px; border-top: 1px solid var(--border); line-height: 1.5; }
+  .chip:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--gc); box-shadow: inset 0 0 0 1.5px var(--border-strong); }
+  .chip.grouped .dot { box-shadow: none; }
+  .chip .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip .x { width: 26px; height: 26px; padding: 0; border: 0; background: none; color: var(--muted); opacity: 0; }
+  .chip .x .i { width: 14px; height: 14px; }
+  .chip:hover .x { opacity: 1; }
+  .chip .x:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }
+
+  details.help { border-top: 1px solid var(--border); font-size: 12px; color: var(--text-2); }
+  details.help summary {
+    display: flex; align-items: center; gap: 7px; padding: 10px 14px; cursor: pointer; list-style: none;
+    color: var(--muted); font-weight: 550;
+  }
+  details.help summary::-webkit-details-marker { display: none; }
+  details.help summary:hover { color: var(--text); }
+  details.help summary .chev { margin-left: auto; transition: transform .2s; width: 14px; height: 14px; }
+  details.help[open] summary .chev { transform: rotate(180deg); }
+  details.help ul { margin: 0; padding: 0 14px 12px 30px; line-height: 1.75; }
 
   /* Floor */
   #viewport {
     position: relative; overflow: hidden; cursor: grab;
-    background-color: #fbfbfc;
+    background-color: var(--floor);
     background-image:
-      linear-gradient(to right, #dfe3e8 1px, transparent 1px),
-      linear-gradient(to bottom, #dfe3e8 1px, transparent 1px),
-      linear-gradient(to right, #eef0f3 1px, transparent 1px),
-      linear-gradient(to bottom, #eef0f3 1px, transparent 1px);
+      radial-gradient(circle, var(--floor-dot-major) 1.6px, transparent 2px),
+      radial-gradient(circle, var(--floor-dot) 1px, transparent 1.4px);
+  }
+  #viewport::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 8px 16px -12px rgba(28, 30, 33, .18), inset 8px 0 16px -12px rgba(28, 30, 33, .18);
   }
   #viewport.panning { cursor: grabbing; }
   #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-  #emptyHint {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    color: var(--muted); pointer-events: none; font-size: 15px;
+
+  #emptyHint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 2; }
+  #emptyHint .card {
+    pointer-events: auto; cursor: default; text-align: center; max-width: 390px; padding: 26px 30px 28px;
+    background: rgba(255, 255, 255, .88); backdrop-filter: blur(8px);
+    border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow-md);
   }
+  #emptyHint .art { width: 112px; height: 112px; display: block; margin: 0 auto 10px; }
+  #emptyHint h2 { margin: 0 0 4px; font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
+  #emptyHint p { margin: 0 0 18px; color: var(--muted); }
+  #emptyHint ol { list-style: none; counter-reset: step; margin: 0 0 20px; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 9px; }
+  #emptyHint li { counter-increment: step; display: flex; align-items: center; gap: 11px; color: var(--text-2); }
+  #emptyHint li::before {
+    content: counter(step); flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 11.5px;
+  }
+  #emptyHint .row { display: flex; gap: 8px; justify-content: center; }
 
   .table { position: absolute; }
+  .table.dragging { z-index: 10; }
   .table .top {
     position: absolute; border-radius: 50%;
-    background: var(--table); border: 2px solid var(--table-edge);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-    cursor: move; box-shadow: 0 2px 6px rgba(0,0,0,.12);
+    background: radial-gradient(circle at 38% 30%, var(--wood-1) 0%, var(--wood-2) 58%, var(--wood-3) 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(120, 85, 40, .28),
+      inset 0 2px 1px rgba(255, 255, 255, .55),
+      inset 0 -4px 10px rgba(120, 85, 40, .16),
+      0 12px 24px -8px rgba(70, 45, 15, .38),
+      0 2px 5px rgba(70, 45, 15, .16);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+    cursor: move; transition: box-shadow .2s, transform .2s;
   }
-  .table.dragging .top { box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+  .table .top::before {
+    content: ''; position: absolute; inset: 10px; border-radius: 50%; pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, .4); box-shadow: 0 0 0 1px rgba(120, 85, 40, .07);
+  }
+  .table.dragging .top {
+    transform: scale(1.03);
+    box-shadow:
+      inset 0 0 0 1px rgba(120, 85, 40, .28), inset 0 2px 1px rgba(255, 255, 255, .55), inset 0 -4px 10px rgba(120, 85, 40, .16),
+      0 28px 44px -10px rgba(70, 45, 15, .45), 0 4px 10px rgba(70, 45, 15, .18);
+  }
   .table .label {
-    width: 80%; text-align: center; border: 1px solid transparent; background: transparent;
-    font-weight: 600; border-radius: 4px; padding: 1px 2px; pointer-events: none; cursor: move;
+    position: relative; width: 76%; height: 24px; padding: 0 4px;
+    text-align: center; text-overflow: ellipsis; font-weight: 650; font-size: 14px; color: var(--wood-text);
+    border: 1px solid transparent; border-radius: 6px; background: transparent;
+    pointer-events: none; cursor: move;
   }
-  .table .label:not([readonly]) { pointer-events: auto; cursor: text; user-select: text; border-color: var(--table-edge); background: rgba(255,255,255,.8); outline: none; }
-  .table .meta { font-size: 11px; color: #6d5a3c; }
-  .table .controls { display: flex; gap: 4px; align-items: center; }
-  .table .controls select { padding: 0 2px; font-size: 12px; }
-  .table .controls button { padding: 0 6px; font-size: 12px; background: rgba(255,255,255,.7); }
+  .table .label:not([readonly]) {
+    pointer-events: auto; cursor: text; user-select: text; outline: none; color: var(--text);
+    background: rgba(255, 255, 255, .95); border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring);
+  }
+  .table .sub { display: grid; position: relative; }
+  .table .sub > * { grid-area: 1 / 1; justify-self: center; align-self: center; transition: opacity .15s; }
+  .table .meta {
+    font-size: 11px; font-weight: 650; color: var(--wood-text); font-variant-numeric: tabular-nums;
+    padding: 2px 9px; border-radius: 99px; background: rgba(255, 255, 255, .45);
+  }
+  .table .meta.full { background: rgba(47, 158, 88, .16); color: #22713d; }
+  .table .controls { display: flex; gap: 4px; opacity: 0; pointer-events: none; }
+  .table .top:hover .controls, .table .top:focus-within .controls { opacity: 1; pointer-events: auto; }
+  .table .top:hover .meta, .table .top:focus-within .meta { opacity: 0; }
+  .table.dragging .controls { opacity: 0 !important; }
+  .table.dragging .meta { opacity: 1 !important; }
+  .table .controls select {
+    height: 24px; padding: 0 20px 0 8px; font-size: 12px; background-position: right 6px center;
+    background-color: rgba(255, 255, 255, .92); border-color: rgba(120, 85, 40, .3);
+  }
+  .table .controls button {
+    width: 24px; height: 24px; padding: 0; color: var(--text-2);
+    background: rgba(255, 255, 255, .92); border-color: rgba(120, 85, 40, .3);
+  }
+  .table .controls button .i { width: 13px; height: 13px; }
+  .table .controls button:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); background: #fff; }
 
   .seat {
-    position: absolute; width: 64px; height: 64px; border-radius: 50%;
-    background: var(--seat); border: 2px dashed var(--seat-edge);
+    position: absolute; width: 64px; height: 64px; border-radius: 50%; padding: 6px;
     display: flex; align-items: center; justify-content: center; text-align: center;
-    font-size: 11px; line-height: 1.15; padding: 4px; overflow: hidden; word-break: break-word;
-    color: var(--muted); transition: transform .08s;
+    font-size: 11px; line-height: 1.15; font-weight: 600; color: #b3b7bd;
+    background: #fff; border: 1.5px dashed var(--seat-edge);
+    transition: transform .18s cubic-bezier(.3, 1.4, .6, 1), box-shadow .15s, border-color .15s, background-color .15s;
   }
-  .seat.filled { border-style: solid; border-color: #7a828e; background: var(--seat-filled); color: var(--text); cursor: grab; font-weight: 500; }
-  .seat.drop-hover { border-color: var(--accent) !important; border-style: solid; background: var(--accent-soft) !important; transform: scale(1.1); }
-  .seat.match { box-shadow: 0 0 0 4px var(--hit); }
+  .seat .nm { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; hyphens: auto; }
+  .seat.long { font-size: 9.5px; letter-spacing: -.01em; }
+  .seat.xlong { font-size: 8.5px; letter-spacing: -.02em; }
+  .seat.filled {
+    --gc: var(--ungrouped);
+    border: 2px solid var(--gc); color: var(--text); font-weight: 550; cursor: grab;
+    background: color-mix(in srgb, var(--gc) 14%, #fff);
+    box-shadow: 0 1px 2px rgba(28, 30, 33, .08), 0 3px 8px -3px color-mix(in srgb, var(--gc) 55%, transparent);
+  }
+  .seat.filled:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(28, 30, 33, .08), 0 8px 16px -6px color-mix(in srgb, var(--gc) 65%, transparent); }
+  .seat.drop-hover {
+    border: 2px solid var(--accent) !important; background: var(--accent-soft) !important; color: var(--accent);
+    transform: scale(1.12); box-shadow: 0 0 0 4px var(--ring) !important;
+  }
+  .seat.match { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--hit) !important; }
 
-  .ghost {
-    position: fixed; z-index: 1000; pointer-events: none; transform: translate(-50%, -50%);
-    padding: 5px 10px; border-radius: 6px; background: var(--accent); color: #fff;
-    box-shadow: 0 6px 16px rgba(0,0,0,.25); white-space: nowrap; font-weight: 500;
+  .drag-ghost {
+    position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none;
+    display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 11px; white-space: nowrap;
+    background: var(--panel); color: var(--text); font-weight: 600;
+    border: 1px solid var(--border); border-radius: 99px; box-shadow: var(--shadow-lg);
+    transform: translate(-50%, -50%) rotate(-2deg);
   }
+  .drag-ghost .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gc, var(--ungrouped)); }
   body.dragging-person, body.dragging-person * { cursor: grabbing !important; }
+
+  /* Toast */
+  #toast {
+    position: fixed; left: calc(50% + var(--side) / 2); bottom: 26px; z-index: 1500;
+    display: flex; align-items: center; gap: 14px; min-height: 42px; max-width: min(560px, calc(100vw - var(--side) - 40px));
+    padding: 6px 6px 6px 16px; border-radius: 12px;
+    background: #24272c; color: #f2f3f5; font-weight: 500; box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none; transform: translate(-50%, 18px) scale(.97);
+    transition: opacity .2s, transform .28s cubic-bezier(.2, .9, .3, 1.2);
+  }
+  #toast.show { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+  #toast.error { background: #a8322c; }
+  #toast .msg { padding: 5px 0; }
+  #toast .act { height: 30px; border: 0; background: rgba(255, 255, 255, .12); color: #fff; }
+  #toast .act:hover:not(:disabled) { background: rgba(255, 255, 255, .22); color: #fff; }
 
   /* Modals */
   .modal-back {
-    position: fixed; inset: 0; background: rgba(15,23,42,.35); display: none;
-    align-items: center; justify-content: center; z-index: 2000;
+    position: fixed; inset: 0; z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(20, 22, 26, .38); backdrop-filter: blur(3px);
+    opacity: 0; visibility: hidden; transition: opacity .18s, visibility .18s;
   }
-  .modal-back.open { display: flex; }
+  .modal-back.open { opacity: 1; visibility: visible; }
   .modal {
-    background: var(--panel); border-radius: 10px; padding: 16px; width: min(480px, 92vw);
-    display: flex; flex-direction: column; gap: 10px; box-shadow: 0 20px 50px rgba(0,0,0,.3);
+    width: min(460px, 92vw); padding: 22px 22px 18px;
+    display: flex; flex-direction: column; gap: 14px;
+    background: var(--panel); border-radius: 16px; box-shadow: var(--shadow-lg);
+    transform: translateY(10px) scale(.98); transition: transform .24s cubic-bezier(.2, .9, .3, 1.1);
   }
-  .modal h2 { margin: 0; font-size: 16px; }
-  .modal p { margin: 0; color: var(--muted); font-size: 13px; }
-  .modal label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-  .modal textarea { width: 100%; height: 240px; border: 1px solid var(--border); border-radius: 6px; padding: 8px; resize: vertical; user-select: text; }
-  .modal .row { display: flex; justify-content: flex-end; gap: 8px; }
+  .modal.sm { width: min(380px, 92vw); }
+  .modal-back.open .modal { transform: none; }
+  .modal h2 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+  .modal p { margin: -8px 0 0; color: var(--muted); }
+  .modal label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+  .modal label input[type=text] { font-weight: 400; color: var(--text); }
+  .modal textarea {
+    width: 100%; height: 230px; padding: 10px 12px; resize: vertical; user-select: text;
+    border: 1px solid var(--border-strong); border-radius: var(--radius); line-height: 1.55; font-weight: 400; color: var(--text);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .modal .hint { font-size: 12px; color: var(--muted); font-weight: 400; min-height: 16px; margin-top: -6px; }
+  .modal .row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 4px; }
   .modal .row .spacer { flex: 1; }
   .modal .groupPick { display: flex; gap: 6px; }
-  .modal .groupPick select { flex: 1; }
-  .modal .groupPick input { flex: 1; }
+  .modal .groupPick select, .modal .groupPick input { flex: 1; min-width: 0; height: 34px; font-weight: 400; color: var(--text); }
+  .modal button.danger { color: var(--danger); }
+  .modal button.danger:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
 
   #printView { display: none; }
 
   @media print {
     body { display: block; overflow: visible; background: #fff; }
-    header, aside, #viewport, .modal-back { display: none !important; }
+    header, aside, #viewport, .modal-back, #toast { display: none !important; }
     #printView { display: block; }
     #printView svg { width: 100%; height: auto; max-height: 9.5in; page-break-after: always; }
     #printView h2 { font-size: 16px; margin: 0 0 12px; }
@@ -195,90 +406,156 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-table" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="3.5" r="1.4"/><circle cx="12" cy="20.5" r="1.4"/><circle cx="3.5" cy="12" r="1.4"/><circle cx="20.5" cy="12" r="1.4"/><circle cx="6" cy="6" r="1.4"/><circle cx="18" cy="6" r="1.4"/><circle cx="6" cy="18" r="1.4"/><circle cx="18" cy="18" r="1.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-sheet" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v5h6"/><path d="M8 13h8M8 17h8M12 13v4"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-userplus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></symbol>
+  <symbol id="i-wand" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4M19 14v4M10 2v2M7 8H3M21 16h-4M11 3H9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+</svg>
+
 <header>
-  <h1>Table Layout</h1>
-  <div class="group">
-    <label for="newSize">Seats</label>
-    <select id="newSize">
-      <option>6</option><option>7</option><option selected>8</option><option>9</option><option>10</option>
+  <div class="brand">
+    <div class="mark"><svg class="i"><use href="#i-table"/></svg></div>
+    <h1>Table Layout<span>Seating planner</span></h1>
+  </div>
+  <div class="add">
+    <select id="newSize" title="Seats at the new table">
+      <option value="6">6 seats</option><option value="7">7 seats</option><option value="8" selected>8 seats</option><option value="9">9 seats</option><option value="10">10 seats</option>
     </select>
-    <button class="primary" id="addTable">+ Add table</button>
+    <button class="primary" id="addTable" title="Add a table (T)"><svg class="i"><use href="#i-plus"/></svg>Add table</button>
   </div>
-  <div class="group">
-    <button id="undo" title="Undo (Ctrl+Z)">↶ Undo</button>
-    <button id="redo" title="Redo (Ctrl+Y)">↷ Redo</button>
+  <div class="seg">
+    <button class="icon" id="undo" title="Undo (Ctrl+Z)"><svg class="i"><use href="#i-undo"/></svg></button>
+    <button class="icon" id="redo" title="Redo (Ctrl+Y)"><svg class="i"><use href="#i-redo"/></svg></button>
   </div>
-  <div class="group">
-    <button id="zoomOut" title="Zoom out">−</button>
-    <span id="zoomLabel">100%</span>
-    <button id="zoomIn" title="Zoom in">+</button>
-    <button id="fit" title="Fit all tables in view">Fit</button>
+  <div class="seg">
+    <button class="icon" id="zoomOut" title="Zoom out (−)"><svg class="i"><use href="#i-minus"/></svg></button>
+    <button id="zoomLabel" title="Reset zoom to 100%">100%</button>
+    <button class="icon" id="zoomIn" title="Zoom in (+)"><svg class="i"><use href="#i-plus"/></svg></button>
+    <button class="icon" id="fit" title="Fit all tables in view (F)"><svg class="i"><use href="#i-fit"/></svg></button>
   </div>
-  <div class="group">
-    <button id="save" title="Download layout as a .json file">Save</button>
-    <button id="load" title="Open a saved .json file">Load</button>
+  <span class="spacer"></span>
+  <div class="seg">
+    <button id="save" title="Download the layout as a .json file (Ctrl+S)"><svg class="i"><use href="#i-save"/></svg>Save</button>
+    <button id="load" title="Open a saved .json file (Ctrl+O)"><svg class="i"><use href="#i-open"/></svg>Open</button>
     <input type="file" id="fileInput" accept=".json,application/json" hidden>
   </div>
-  <div class="group">
-    <button id="exportCsv">Export CSV</button>
-    <button id="print">Print</button>
+  <div class="seg">
+    <button id="exportCsv" title="Download the guest list as a spreadsheet (.csv)"><svg class="i"><use href="#i-sheet"/></svg>CSV</button>
+    <button id="print" title="Print the floor plan and guest list (Ctrl+P)"><svg class="i"><use href="#i-print"/></svg>Print</button>
   </div>
-  <div class="group">
-    <button class="danger" id="clearAll">Clear all</button>
-  </div>
-  <span id="status"></span>
+  <button class="icon ghost danger" id="clearAll" title="Clear everything"><svg class="i"><use href="#i-trash"/></svg></button>
 </header>
 
 <aside>
-  <div class="top">
-    <div class="row">
-      <button class="primary" id="openImport">Import names</button>
-      <button id="autoFill" title="Seat everyone in the list, keeping groups together">Auto-fill</button>
-    </div>
-    <input type="search" id="search" placeholder="Search names…">
-    <div id="counts"></div>
-  </div>
-  <div id="groupsBox">
-    <div class="head"><span>Groups</span><button id="addGroup">+ New</button></div>
+  <section class="side-actions">
+    <button class="primary" id="openImport" title="Add names, one per line (I)"><svg class="i"><use href="#i-userplus"/></svg>Import</button>
+    <button id="autoFill" title="Seat everyone in the list, keeping groups together"><svg class="i"><use href="#i-wand"/></svg>Auto-fill</button>
+  </section>
+  <section class="stats" id="stats">
+    <div class="stat-main"><b id="statSeated">0</b><span>of <span id="statPeople">0</span> seated</span><span class="pct" id="statPct"></span></div>
+    <div class="bar" id="statBarWrap"><i id="statBar"></i></div>
+    <div class="pills" id="counts"></div>
+  </section>
+  <section id="groupsBox">
+    <div class="sec-head"><span>Groups</span><button class="mini" id="addGroup"><svg class="i"><use href="#i-plus"/></svg>New</button></div>
     <div id="groups"></div>
-  </div>
+  </section>
+  <section class="list-head">
+    <div class="sec-head"><span>Unassigned<em id="listCount">0</em></span></div>
+    <div class="search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="search" placeholder="Find a guest…  ( / )" autocomplete="off"></div>
+  </section>
   <div id="list"></div>
-  <div class="help">
-    Drag names onto seats · drag back here to unseat<br>
-    Double-click a seated name to unseat<br>
-    Right-click / double-click a name to edit<br>
-    Drag a name onto a group to tag it<br>
-    Drag a table top to move it · drag floor to pan · scroll to zoom
-  </div>
+  <details class="help">
+    <summary><svg class="i"><use href="#i-help"/></svg>Tips &amp; shortcuts<svg class="i chev"><use href="#i-chev"/></svg></summary>
+    <ul>
+      <li>Drag guests onto seats; drop them back here to unseat</li>
+      <li>Drop a seated guest on another seat to swap</li>
+      <li>Double-click a seated guest to unseat</li>
+      <li>Right-click a guest to rename or regroup</li>
+      <li>Drag a guest onto a group to tag them</li>
+      <li>Drag a tabletop to move it; double-click to rename</li>
+      <li>Drag the floor to pan, scroll to zoom</li>
+      <li><kbd>Ctrl</kbd> <kbd>Z</kbd> undo · <kbd>Ctrl</kbd> <kbd>Y</kbd> redo</li>
+    </ul>
+  </details>
 </aside>
 
 <main id="viewport">
   <div id="world"></div>
-  <div id="emptyHint">Pick a seat count and click “+ Add table”.</div>
+  <div id="emptyHint">
+    <div class="card">
+      <svg class="art" viewBox="0 0 120 120" aria-hidden="true">
+        <defs>
+          <radialGradient id="artWood" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#f5e9d3"/><stop offset=".6" stop-color="#e8d5b2"/><stop offset="1" stop-color="#d6bc90"/></radialGradient>
+        </defs>
+        <g stroke-width="2">
+          <circle cx="60" cy="16" r="11" fill="#fbe4e4" stroke="#e15759"/>
+          <circle cx="91.1" cy="28.9" r="11" fill="#e2eaf3" stroke="#4e79a7"/>
+          <circle cx="104" cy="60" r="11" fill="#e2eaf3" stroke="#4e79a7"/>
+          <circle cx="91.1" cy="91.1" r="11" fill="#fff" stroke="#ccd0d6" stroke-dasharray="3 3" stroke-width="1.5"/>
+          <circle cx="60" cy="104" r="11" fill="#fff" stroke="#ccd0d6" stroke-dasharray="3 3" stroke-width="1.5"/>
+          <circle cx="28.9" cy="91.1" r="11" fill="#e4f1e2" stroke="#59a14f"/>
+          <circle cx="16" cy="60" r="11" fill="#e4f1e2" stroke="#59a14f"/>
+          <circle cx="28.9" cy="28.9" r="11" fill="#fbe4e4" stroke="#e15759"/>
+        </g>
+        <circle cx="60" cy="60" r="29" fill="url(#artWood)" stroke="#c9ad7f" stroke-width="1"/>
+        <circle cx="60" cy="60" r="23" fill="none" stroke="#fff" stroke-opacity=".45"/>
+      </svg>
+      <h2>Plan your seating</h2>
+      <p>Three steps to a finished floor plan.</p>
+      <ol>
+        <li>Import your guest list, one name per line</li>
+        <li>Add round tables of 6 to 10 seats</li>
+        <li>Drag guests to seats, or let Auto-fill do it</li>
+      </ol>
+      <div class="row">
+        <button class="primary" id="hintImport"><svg class="i"><use href="#i-userplus"/></svg>Import names</button>
+        <button id="hintAdd"><svg class="i"><use href="#i-plus"/></svg>Add a table</button>
+      </div>
+    </div>
+  </div>
 </main>
+
+<div id="toast" role="status" aria-live="polite"><span class="msg"></span><button class="act" hidden>Undo</button></div>
 
 <div class="modal-back" id="importModal">
   <div class="modal">
     <h2>Import names</h2>
-    <p>Put one name on each line. Names already in the list are skipped.</p>
-    <textarea id="importText" placeholder="Jane Doe&#10;John Smith&#10;…"></textarea>
-    <label>Group for these names
+    <p>One name per line. Names already in the list are skipped.</p>
+    <textarea id="importText" placeholder="Jane Doe&#10;John Smith&#10;…" spellcheck="false"></textarea>
+    <div class="hint" id="importCount"></div>
+    <label>Add them to a group
       <div class="groupPick" id="importGroup"></div>
     </label>
     <div class="row">
       <button id="cancelImport">Cancel</button>
-      <button class="primary" id="doImport">Import</button>
+      <button class="primary" id="doImport" title="Ctrl+Enter">Import</button>
     </div>
   </div>
 </div>
 
 <div class="modal-back" id="editModal">
   <div class="modal">
-    <h2>Edit person</h2>
+    <h2>Edit guest</h2>
     <label>Name <input type="text" id="editName" maxlength="80"></label>
     <label>Group <div class="groupPick" id="editGroup"></div></label>
     <div class="row">
-      <button class="danger" id="editDelete">Delete</button>
+      <button class="danger" id="editDelete"><svg class="i"><use href="#i-trash"/></svg>Delete</button>
       <button id="editUnseat">Unseat</button>
       <span class="spacer"></span>
       <button id="editCancel">Cancel</button>
@@ -288,12 +565,23 @@
 </div>
 
 <div class="modal-back" id="groupModal">
-  <div class="modal">
+  <div class="modal sm">
     <h2 id="groupModalTitle">Group</h2>
     <label>Name <input type="text" id="groupName" maxlength="40"></label>
     <div class="row">
       <button id="groupCancel">Cancel</button>
       <button class="primary" id="groupSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="confirmModal">
+  <div class="modal sm">
+    <h2 id="confirmTitle"></h2>
+    <p id="confirmText"></p>
+    <div class="row">
+      <button id="confirmNo">Cancel</button>
+      <button class="danger-solid" id="confirmYes">OK</button>
     </div>
   </div>
 </div>
@@ -316,6 +604,7 @@
   const $ = id => document.getElementById(id);
   const viewport = $('viewport'), world = $('world'), list = $('list');
 
+  const icon = name => `<svg class="i"><use href="#i-${name}"/></svg>`;
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
   const snap = v => Math.round(v / G) * G;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -379,12 +668,24 @@
       if (raw) applyData(JSON.parse(raw));
     } catch {}
   }
-  let flashTimer;
-  function flash(msg) {
-    $('status').textContent = msg;
-    clearTimeout(flashTimer);
-    flashTimer = setTimeout(() => $('status').textContent = '', 3000);
+  // Toast: short status message, optionally with an Undo button. Hovering keeps it open.
+  const toast = $('toast');
+  let toastTimer, toastMs = 0;
+  function flash(msg, opts = {}) {
+    toast.querySelector('.msg').textContent = msg;
+    toast.querySelector('.act').hidden = !opts.undo;
+    toast.classList.toggle('error', !!opts.error);
+    toast.classList.add('show');
+    toastMs = opts.undo || opts.error ? 5000 : 2600;
+    armToast();
   }
+  function armToast() {
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), toastMs);
+  }
+  toast.addEventListener('pointerenter', () => clearTimeout(toastTimer));
+  toast.addEventListener('pointerleave', armToast);
+  toast.querySelector('.act').onclick = () => { toast.classList.remove('show'); undo(); };
 
   // ---------- undo / redo ----------
   // Every change goes through changed(), which snapshots the document (not the view).
@@ -435,10 +736,13 @@
   // ---------- rendering ----------
   function applyView() {
     world.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.s})`;
+    // Dot grid: each tile's dot sits at its center, so offset by half a tile to land on grid points.
+    // The minor dots fade out when zoomed far out so the floor doesn't turn into noise.
     const minor = G * view.s, major = G * 5 * view.s;
-    viewport.style.backgroundSize = `${major}px ${major}px, ${major}px ${major}px, ${minor}px ${minor}px, ${minor}px ${minor}px`;
-    const pos = `${view.x}px ${view.y}px`;
-    viewport.style.backgroundPosition = [pos, pos, pos, pos].join(', ');
+    const showMinor = minor >= 10;
+    viewport.style.backgroundSize = `${major}px ${major}px` + (showMinor ? `, ${minor}px ${minor}px` : ', 0 0');
+    const at = size => `${view.x - size / 2}px ${view.y - size / 2}px`;
+    viewport.style.backgroundPosition = `${at(major)}, ${at(minor)}`;
     $('zoomLabel').textContent = Math.round(view.s * 100) + '%';
   }
 
@@ -448,7 +752,7 @@
     renderTables();
     applyView();
     updateUndoButtons();
-    $('emptyHint').style.display = state.tables.length ? 'none' : '';
+    $('emptyHint').hidden = state.tables.length > 0;
   }
 
   function query() { return $('search').value.trim().toLowerCase(); }
@@ -461,7 +765,7 @@
     const box = $('groups');
     box.innerHTML = '';
     if (!state.groups.length) {
-      box.innerHTML = '<div class="hint">No groups yet. Groups keep people together when you use Auto-fill.</div>';
+      box.innerHTML = '<div class="hint">No groups yet. Groups color-code guests and keep them together during Auto-fill.</div>';
       return;
     }
     const counts = new Map();
@@ -472,7 +776,7 @@
       row.dataset.gid = g.id;
       row.title = 'Click to show only this group in the list';
       row.innerHTML = `<input type="color" title="Group color"><span class="gname"></span><span class="gcount"></span>
-        <button class="ren" title="Rename group">✎</button><button class="del" title="Delete group">×</button>`;
+        <button class="ren" title="Rename group">${icon('pencil')}</button><button class="del" title="Delete group">${icon('trash')}</button>`;
       const color = row.querySelector('input');
       color.value = g.color;
       color.addEventListener('input', () => { g.color = color.value; renderTables(); renderList(); });
@@ -494,21 +798,42 @@
       el.className = 'chip';
       el.dataset.pid = p.id;
       const g = groupById(p.group);
-      if (g) { el.style.borderLeftColor = g.color; el.title = g.name; }
-      el.innerHTML = `<span></span><button class="x" title="Remove person">×</button>`;
-      el.firstChild.textContent = p.name;
+      if (g) { el.classList.add('grouped'); el.style.setProperty('--gc', g.color); }
+      el.title = p.name + (g ? ` · ${g.name}` : '') + '\nDrag to a seat · right-click to edit';
+      el.innerHTML = `<span class="dot"></span><span class="nm"></span><button class="x" title="Remove guest">${icon('x')}</button>`;
+      el.querySelector('.nm').textContent = p.name;
       list.appendChild(el);
     }
     if (!shown.length) {
       const e = document.createElement('div');
       e.className = 'empty';
-      e.textContent = state.people.length === 0 ? 'Import names to get started.'
-        : unassigned.length === 0 ? 'Everyone is seated 🎉' : 'No matches in the list.';
+      e.innerHTML = state.people.length === 0 ? '<b>No guests yet</b>Import a list of names to get started.'
+        : unassigned.length === 0 ? '<b>Everyone is seated 🎉</b>Drag a guest back here to unseat them.'
+        : '<b>No matches</b>Nobody unassigned matches this filter.';
       list.appendChild(e);
     }
+    $('listCount').textContent = unassigned.length;
+    renderStats(state.people.length - unassigned.length);
+  }
+
+  function renderStats(seatedCount) {
+    const total = state.people.length;
     const seats = state.tables.reduce((n, t) => n + t.seats, 0);
-    $('counts').textContent =
-      `${unassigned.length} unassigned · ${state.people.length} people · ${state.tables.length} tables · ${seats} seats`;
+    const pct = total ? Math.round(seatedCount / total * 100) : 0;
+    const done = total > 0 && seatedCount === total;
+    $('statSeated').textContent = seatedCount;
+    $('statPeople').textContent = total;
+    $('statPct').textContent = total ? pct + '%' : '';
+    $('statBar').style.width = pct + '%';
+    $('statBarWrap').classList.toggle('done', done);
+    $('stats').classList.toggle('done', done);
+    const free = seats - seatedCount, short = total - seats;
+    const plural = (n, w) => `<b>${n}</b> ${w}${n === 1 ? '' : 's'}`;
+    $('counts').innerHTML =
+      `<span class="pill">${plural(state.tables.length, 'table')}</span>` +
+      `<span class="pill">${plural(seats, 'seat')}</span>` +
+      (short > 0 ? `<span class="pill warn"><b>${short}</b> more seat${short === 1 ? '' : 's'} needed</span>`
+                 : `<span class="pill"><b>${free}</b> free</span>`);
   }
 
   function renderTables() {
@@ -534,10 +859,12 @@
     const filled = t.assign.filter(Boolean).length;
     top.innerHTML = `
       <input class="label" maxlength="40" readonly tabindex="-1">
-      <div class="meta">${filled} / ${t.seats}</div>
-      <div class="controls">
-        <select title="Number of seats">${[6, 7, 8, 9, 10].map(n => `<option ${n === t.seats ? 'selected' : ''}>${n}</option>`).join('')}</select>
-        <button title="Delete table">✕</button>
+      <div class="sub">
+        <div class="meta${filled === t.seats ? ' full' : ''}">${filled === t.seats ? 'Full' : `${filled} / ${t.seats}`}</div>
+        <div class="controls">
+          <select title="Number of seats">${[6, 7, 8, 9, 10].map(n => `<option value="${n}" ${n === t.seats ? 'selected' : ''}>${n} seats</option>`).join('')}</select>
+          <button title="Delete table">${icon('trash')}</button>
+        </div>
       </div>`;
     const label = top.querySelector('.label');
     label.value = t.label;
@@ -574,9 +901,13 @@
       if (p) {
         seat.classList.add('filled');
         seat.dataset.pid = p.id;
-        seat.textContent = p.name;
+        seat.innerHTML = '<span class="nm"></span>';
+        seat.firstChild.textContent = p.name;
+        const word = Math.max(...p.name.split(/\s+/).map(w => w.length));
+        if (word > 11 || p.name.length > 26) seat.classList.add('xlong');
+        else if (word > 8 || p.name.length > 18) seat.classList.add('long');
         const g = groupById(p.group);
-        if (g) { seat.style.borderColor = g.color; seat.style.background = g.color + '33'; }
+        if (g) seat.style.setProperty('--gc', g.color);
         seat.title = p.name + (g ? ` (${g.name})` : '') + '\nDouble-click to unseat · right-click to edit';
         if (highlight && matches(p, q)) seat.classList.add('match');
       } else {
@@ -629,30 +960,37 @@
     t.seats = n;
     t.assign = kept;
     changed();
-    if (dropped) flash(`${dropped} ${dropped > 1 ? 'people' : 'person'} moved back to the list`);
+    if (dropped) flash(`${dropped} ${dropped > 1 ? 'guests' : 'guest'} moved back to the list`, { undo: true });
   }
 
   function deleteTable(t) {
     const filled = t.assign.filter(Boolean).length;
     state.tables = state.tables.filter(x => x !== t);
     changed();
-    flash(`Deleted ${t.label || 'table'}` + (filled ? ` · ${filled} back in the list` : '') + ' (Ctrl+Z to undo)');
+    flash(`Deleted ${t.label || 'table'}` + (filled ? ` · ${filled} back in the list` : ''), { undo: true });
   }
 
   // ---------- people operations ----------
-  function importNames(text, gid) {
+  // Split pasted text into new names and duplicates (case-insensitive, also within the paste)
+  function parseNames(text) {
     const existing = new Set(state.people.map(p => p.name.toLowerCase()));
-    let added = 0, skipped = 0;
+    const names = [];
+    let skipped = 0;
     for (const line of text.split(/\r?\n/)) {
       const name = line.trim();
       if (!name) continue;
       if (existing.has(name.toLowerCase())) { skipped++; continue; }
       existing.add(name.toLowerCase());
-      state.people.push({ id: uid(), name, group: gid || null });
-      added++;
+      names.push(name);
     }
+    return { names, skipped };
+  }
+  function importNames(text, gid) {
+    const { names, skipped } = parseNames(text);
+    for (const name of names) state.people.push({ id: uid(), name, group: gid || null });
     changed();
-    flash(`Imported ${added}` + (skipped ? `, skipped ${skipped} duplicate${skipped > 1 ? 's' : ''}` : ''));
+    flash(`Imported ${names.length} guest${names.length === 1 ? '' : 's'}` +
+      (skipped ? ` · skipped ${skipped} duplicate${skipped > 1 ? 's' : ''}` : ''), { undo: names.length > 0 });
   }
 
   function removePerson(pid) {
@@ -686,7 +1024,7 @@
     if (!p || p.group === gid) return;
     p.group = gid;
     changed();
-    flash(`${p.name} → ${groupById(gid)?.name || 'no group'}`);
+    flash(`${p.name} → ${groupById(gid)?.name || 'no group'}`, { undo: true });
   }
 
   // ---------- auto-fill ----------
@@ -746,7 +1084,8 @@
 
     changed();
     const placed = pending.length - unplaced;
-    flash(`Seated ${placed}` + (unplaced ? ` · ${unplaced} still need seats — add more tables` : ''));
+    flash(`Seated ${placed} guest${placed === 1 ? '' : 's'}` + (unplaced ? ` · ${unplaced} still need seats — add more tables` : ''),
+      { undo: placed > 0 });
   }
 
   // Fill a table's empty seats with ids, starting next to existing members of the
@@ -833,7 +1172,7 @@
       for (const p of state.people) if (p.group === g.id) p.group = null;
       if (groupFilter === g.id) groupFilter = null;
       changed();
-      flash(`Deleted group ${g.name} (Ctrl+Z to undo)`);
+      flash(`Deleted group ${g.name}`, { undo: true });
       return;
     }
     if (e.target.closest('.ren')) { openGroupModal(g); return; }
@@ -851,15 +1190,41 @@
   $('openImport').onclick = () => {
     $('importText').value = '';
     fillGroupPick($('importGroup'), groupFilter);
+    updateImportCount();
     openModal('importModal');
     $('importText').focus();
   };
+  function updateImportCount() {
+    const { names, skipped } = parseNames($('importText').value);
+    const n = names.length;
+    $('importCount').textContent = !n && !skipped ? '' :
+      `${n} new name${n === 1 ? '' : 's'}` + (skipped ? ` · ${skipped} duplicate${skipped === 1 ? '' : 's'} will be skipped` : '');
+    $('doImport').textContent = n ? `Import ${n}` : 'Import';
+    $('doImport').disabled = !n;
+  }
+  $('importText').addEventListener('input', updateImportCount);
+  $('importText').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $('doImport').click(); }
+  });
   $('cancelImport').onclick = closeModals;
   $('doImport').onclick = () => {
+    if ($('doImport').disabled) return;
     const gid = readGroupPick($('importGroup'));
     importNames($('importText').value, gid);
     closeModals();
   };
+
+  let confirmAction = null;
+  function confirmBox(title, text, yesLabel, onYes) {
+    $('confirmTitle').textContent = title;
+    $('confirmText').textContent = text;
+    $('confirmYes').textContent = yesLabel;
+    confirmAction = onYes;
+    openModal('confirmModal');
+    $('confirmYes').focus();
+  }
+  $('confirmNo').onclick = closeModals;
+  $('confirmYes').onclick = () => { const f = confirmAction; confirmAction = null; closeModals(); f?.(); };
 
   let editing = null;
   function openEdit(pid) {
@@ -883,7 +1248,7 @@
   };
   $('editModal').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input[type=text]')) $('editSave').click(); });
   $('editCancel').onclick = closeModals;
-  $('editDelete').onclick = () => { const id = editing.id; closeModals(); removePerson(id); flash('Deleted (Ctrl+Z to undo)'); };
+  $('editDelete').onclick = () => { const p = editing; closeModals(); removePerson(p.id); flash(`Deleted ${p.name}`, { undo: true }); };
   $('editUnseat').onclick = () => { const id = editing.id; closeModals(); unseat(id); };
 
   // ---------- pointer interactions ----------
@@ -908,8 +1273,11 @@
       if (!ghost) {
         if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
         ghost = document.createElement('div');
-        ghost.className = 'ghost';
-        ghost.textContent = name;
+        ghost.className = 'drag-ghost';
+        ghost.innerHTML = '<span class="dot"></span><span></span>';
+        ghost.lastChild.textContent = name;
+        const g = groupById(personById(pid)?.group);
+        if (g) ghost.style.setProperty('--gc', g.color);
         document.body.appendChild(ghost);
         document.body.classList.add('dragging-person');
       }
@@ -985,7 +1353,11 @@
   });
   list.addEventListener('click', e => {
     const x = e.target.closest('.x');
-    if (x) { removePerson(x.closest('.chip').dataset.pid); flash('Removed (Ctrl+Z to undo)'); }
+    if (x) {
+      const p = personById(x.closest('.chip').dataset.pid);
+      removePerson(p.id);
+      flash(`Removed ${p.name}`, { undo: true });
+    }
   });
   list.addEventListener('dblclick', e => {
     const chip = e.target.closest('.chip');
@@ -998,7 +1370,7 @@
 
   viewport.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
-    if (e.target.closest('input, select, button')) return;
+    if (e.target.closest('input, select, button, #emptyHint .card')) return;
     // Committing a table-label edit re-renders the floor, so re-resolve the target afterwards
     if (document.activeElement?.classList.contains('label')) document.activeElement.blur();
     const target = document.elementFromPoint(e.clientX, e.clientY) || e.target;
@@ -1046,6 +1418,7 @@
   const zoomCenter = f => { const r = viewport.getBoundingClientRect(); zoomAt(f, r.width / 2, r.height / 2); };
   $('zoomIn').onclick = () => zoomCenter(1.2);
   $('zoomOut').onclick = () => zoomCenter(1 / 1.2);
+  $('zoomLabel').onclick = () => zoomCenter(1 / view.s);
 
   function bounds() {
     if (!state.tables.length) return null;
@@ -1073,6 +1446,8 @@
 
   // ---------- toolbar ----------
   $('addTable').onclick = addTable;
+  $('hintAdd').onclick = addTable;
+  $('hintImport').onclick = () => $('openImport').click();
   $('autoFill').onclick = autoFill;
   $('search').addEventListener('input', render);
   $('undo').onclick = undo;
@@ -1098,18 +1473,21 @@
     try {
       applyData(JSON.parse(await file.text()));
       changed();
-      flash('Loaded ' + file.name + ' (Ctrl+Z to go back)');
+      flash('Opened ' + file.name, { undo: true });
     } catch (err) {
-      alert('Could not load file: ' + err.message);
+      flash('Could not open file: ' + (err instanceof SyntaxError ? 'not valid JSON' : err.message), { error: true });
     }
   });
 
   $('clearAll').onclick = () => {
-    if (!confirm('Remove all tables, people and groups?\n(You can still undo with Ctrl+Z.)')) return;
-    state = { people: [], groups: [], tables: [] };
-    groupFilter = null;
-    view = { x: 40, y: 40, s: 1 };
-    changed();
+    if (!state.people.length && !state.tables.length && !state.groups.length) { flash('Nothing to clear'); return; }
+    confirmBox('Clear everything?', 'This removes all tables, guests and groups. You can undo it afterwards.', 'Clear all', () => {
+      state = { people: [], groups: [], tables: [] };
+      groupFilter = null;
+      view = { x: 40, y: 40, s: 1 };
+      changed();
+      flash('Cleared', { undo: true });
+    });
   };
 
   // ---------- export / print ----------
