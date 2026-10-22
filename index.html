@@ -217,7 +217,9 @@
   details.help summary:hover { color: var(--text); }
   details.help summary .chev { margin-left: auto; transition: transform .2s; width: 14px; height: 14px; }
   details.help[open] summary .chev { transform: rotate(180deg); }
-  details.help ul { margin: 0; padding: 0 14px 12px 30px; line-height: 1.75; }
+  details.help ul { margin: 0; padding: 0 14px 8px 30px; line-height: 1.75; }
+  details.help .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 4px 14px 14px; color: var(--muted); }
+  details.help .keys span { white-space: nowrap; }
 
   /* Floor */
   #viewport {
@@ -315,7 +317,7 @@
     display: flex; align-items: center; justify-content: center; text-align: center;
     font-size: 11px; line-height: 1.15; font-weight: 600; color: #b3b7bd;
     background: #fff; border: 1.5px dashed var(--seat-edge);
-    transition: transform .18s cubic-bezier(.3, 1.4, .6, 1), box-shadow .15s, border-color .15s, background-color .15s;
+    transition: transform .18s cubic-bezier(.3, 1.4, .6, 1), box-shadow .15s, border-color .15s, background-color .15s, opacity .2s, filter .2s;
   }
   .seat .nm { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; hyphens: auto; }
   .seat.long { font-size: 9.5px; letter-spacing: -.01em; }
@@ -332,6 +334,26 @@
     transform: scale(1.12); box-shadow: 0 0 0 4px var(--ring) !important;
   }
   .seat.match { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--hit) !important; }
+  /* While searching/filtering, fade everyone who doesn't match */
+  #world.filtering .seat:not(.match), #world.grouphover .seat:not(.hl) { opacity: .3; filter: grayscale(.7); }
+  .seat.hl { box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--gc) !important; opacity: 1 !important; filter: none !important; }
+  .seat.pulse { animation: seat-pulse 1.1s ease-out 2; }
+  @keyframes seat-pulse {
+    0% { box-shadow: 0 0 0 0 var(--hit); }
+    100% { box-shadow: 0 0 0 18px transparent; }
+  }
+
+  .hits { margin: 6px 0 4px; }
+  .hits .hits-title { font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 4px 4px 6px; }
+  .hit {
+    display: flex; align-items: center; gap: 9px; width: 100%; padding: 6px 10px; margin-bottom: 2px;
+    border: 1px solid transparent; border-radius: 9px; background: none; font: inherit; font-size: 13px;
+    color: var(--text); text-align: left; cursor: pointer; height: auto;
+  }
+  .hit:hover { background: var(--sunken); border-color: var(--border); }
+  .hit .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--gc); }
+  .hit .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hit .where { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
   .drag-ghost { position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none; will-change: transform; }
   .drag-ghost .card {
@@ -473,7 +495,7 @@
 <aside>
   <section class="side-actions">
     <button class="primary" id="openImport" title="Add names, one per line (I)"><svg class="i"><use href="#i-userplus"/></svg>Import</button>
-    <button id="autoFill" title="Seat everyone in the list, keeping groups together"><svg class="i"><use href="#i-wand"/></svg>Auto-fill</button>
+    <button id="autoFill" title="Seat everyone in the list, keeping groups together (A)"><svg class="i"><use href="#i-wand"/></svg>Auto-fill</button>
   </section>
   <section class="stats" id="stats">
     <div class="stat-main"><b id="statSeated">0</b><span>of <span id="statPeople">0</span> seated</span><span class="pct" id="statPct"></span></div>
@@ -499,8 +521,17 @@
       <li>Drag a guest onto a group to tag them</li>
       <li>Drag a tabletop to move it; double-click to rename</li>
       <li>Drag the floor to pan, scroll to zoom</li>
-      <li><kbd>Ctrl</kbd> <kbd>Z</kbd> undo · <kbd>Ctrl</kbd> <kbd>Y</kbd> redo</li>
+      <li>Search also finds seated guests; click one to fly to their seat</li>
+      <li>Hover a group to light up its seats</li>
     </ul>
+    <div class="keys">
+      <span><kbd>T</kbd> add table</span><span><kbd>I</kbd> import</span>
+      <span><kbd>A</kbd> auto-fill</span><span><kbd>F</kbd> fit</span>
+      <span><kbd>/</kbd> search</span><span><kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd> zoom</span>
+      <span><kbd>Ctrl</kbd> <kbd>Z</kbd> undo</span><span><kbd>Ctrl</kbd> <kbd>Y</kbd> redo</span>
+      <span><kbd>Ctrl</kbd> <kbd>S</kbd> save</span><span><kbd>Ctrl</kbd> <kbd>O</kbd> open</span>
+      <span><kbd>Ctrl</kbd> <kbd>P</kbd> print</span><span><kbd>Esc</kbd> cancel drag</span>
+    </div>
   </details>
 </aside>
 
@@ -783,7 +814,9 @@
       const row = document.createElement('div');
       row.className = 'grow' + (groupFilter === g.id ? ' active' : '');
       row.dataset.gid = g.id;
-      row.title = 'Click to show only this group in the list';
+      row.title = 'Click to filter by this group';
+      row.onmouseenter = () => hoverGroup(g.id);
+      row.onmouseleave = () => hoverGroup(null);
       row.innerHTML = `<input type="color" title="Group color"><span class="gname"></span><span class="gcount"></span>
         <button class="ren" title="Rename group">${icon('pencil')}</button><button class="del" title="Delete group">${icon('trash')}</button>`;
       const color = row.querySelector('input');
@@ -813,14 +846,38 @@
       el.querySelector('.nm').textContent = p.name;
       list.appendChild(el);
     }
-    if (!shown.length) {
+    const hits = [];
+    if (q || groupFilter)
+      for (const t of sortedTables())
+        t.assign.forEach((pid, i) => { const p = pid && personById(pid); if (p && matches(p, q)) hits.push({ p, t, i }); });
+    if (hits.length) {
+      const box = document.createElement('div');
+      box.className = 'hits';
+      box.innerHTML = `<div class="hits-title">Seated · ${hits.length}</div>`;
+      for (const { p, t, i } of hits.slice(0, 50)) {
+        const b = document.createElement('button');
+        b.className = 'hit';
+        b.title = 'Show on the floor';
+        const g = groupById(p.group);
+        b.style.setProperty('--gc', g ? g.color : 'var(--ungrouped)');
+        b.innerHTML = '<span class="dot"></span><span class="nm"></span><span class="where"></span>';
+        b.querySelector('.nm').textContent = p.name;
+        b.querySelector('.where').textContent = `${t.label} · ${i + 1}`;
+        b.onclick = () => focusSeat(t, i);
+        box.appendChild(b);
+      }
+      if (hits.length > 50) box.insertAdjacentHTML('beforeend', `<div class="hits-title">+ ${hits.length - 50} more</div>`);
+      list.appendChild(box);
+    }
+    if (!shown.length && !hits.length) {
       const e = document.createElement('div');
       e.className = 'empty';
       e.innerHTML = state.people.length === 0 ? '<b>No guests yet</b>Import a list of names to get started.'
         : unassigned.length === 0 ? '<b>Everyone is seated 🎉</b>Drag a guest back here to unseat them.'
-        : '<b>No matches</b>Nobody unassigned matches this filter.';
+        : '<b>No matches</b>Nobody matches this search.';
       list.appendChild(e);
     }
+    if (hits.length && !shown.length) list.firstChild.style.marginTop = '2px';
     $('listCount').textContent = unassigned.length;
     renderStats(state.people.length - unassigned.length);
   }
@@ -852,6 +909,7 @@
   function renderTables() {
     const q = query();
     const highlight = !!(q || groupFilter);
+    world.classList.toggle('filtering', highlight);
     const before = new Map();
     for (const el of world.querySelectorAll(':scope > .table:not(.leaving)')) before.set(el.dataset.tid, el);
     world.innerHTML = '';
@@ -952,7 +1010,7 @@
         if (word > 11 || p.name.length > 26) seat.classList.add('xlong');
         else if (word > 8 || p.name.length > 18) seat.classList.add('long');
         const g = groupById(p.group);
-        if (g) seat.style.setProperty('--gc', g.color);
+        if (g) { seat.style.setProperty('--gc', g.color); seat.dataset.gid = g.id; }
         seat.title = p.name + (g ? ` (${g.name})` : '') + '\nDouble-click to unseat · right-click to edit';
         if (highlight && matches(p, q)) seat.classList.add('match');
       } else {
@@ -961,6 +1019,22 @@
       el.appendChild(seat);
     }
     return el;
+  }
+
+  function hoverGroup(gid) {
+    const seats = world.querySelectorAll(`.seat[data-gid="${gid}"]`);
+    world.classList.toggle('grouphover', !!gid && seats.length > 0);
+    for (const s of world.querySelectorAll('.seat.hl')) s.classList.remove('hl');
+    for (const s of seats) s.classList.add('hl');
+  }
+
+  // Fly the view to a seat and pulse it
+  function focusSeat(t, i) {
+    const r = viewport.getBoundingClientRect();
+    const s = Math.max(view.s, 0.9);
+    animateView({ s, x: r.width / 2 - t.x * s, y: r.height / 2 - t.y * s });
+    const seat = world.querySelector(`.seat[data-tid="${t.id}"][data-idx="${i}"]`);
+    if (seat) { seat.classList.remove('pulse'); void seat.offsetWidth; seat.classList.add('pulse'); }
   }
 
   // ---------- table operations ----------
@@ -1231,7 +1305,11 @@
 
   // ---------- modals ----------
   function openModal(id) { $(id).classList.add('open'); }
-  function closeModals() { document.querySelectorAll('.modal-back.open').forEach(m => m.classList.remove('open')); }
+  function closeModals() {
+    document.querySelectorAll('.modal-back.open').forEach(m => m.classList.remove('open'));
+    // Don't leave focus in a hidden field, or single-key shortcuts would stop working
+    if (document.activeElement?.closest('.modal-back')) document.activeElement.blur();
+  }
   const anyModalOpen = () => !!document.querySelector('.modal-back.open');
   document.querySelectorAll('.modal-back').forEach(m =>
     m.addEventListener('pointerdown', e => { if (e.target === m) closeModals(); }));
@@ -1620,10 +1698,33 @@
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeModals(); return; }
-    if (anyModalOpen() || e.target.closest('input, textarea, select')) return;
-    const mod = e.ctrlKey || e.metaKey;
-    if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-    else if (mod && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
+    if (anyModalOpen()) return;
+    const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
+    // File shortcuts work even while typing in the search box
+    const file = { s: 'save', o: 'load', p: 'print' }[k];
+    if (mod && !e.shiftKey && !e.altKey && file) { e.preventDefault(); $(file).click(); return; }
+    if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (mod && k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+    if (mod && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
+    if (mod || e.altKey) return;
+    const keys = {
+      t: addTable,
+      i: () => $('openImport').click(),
+      a: autoFill,
+      f: fit,
+      '/': () => { $('search').focus(); $('search').select(); },
+      '+': () => zoomCenter(1.25), '=': () => zoomCenter(1.25),
+      '-': () => zoomCenter(1 / 1.25), '_': () => zoomCenter(1 / 1.25),
+      '0': () => zoomCenter(1 / view.s),
+      '?': () => { const d = document.querySelector('details.help'); d.open = !d.open; },
+    };
+    if (keys[k]) { e.preventDefault(); keys[k](); }
+  });
+  // Esc in the search box clears it
+  $('search').addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    e.stopPropagation();
+    if ($('search').value) { $('search').value = ''; render(); } else $('search').blur();
   });
 
   $('save').onclick = () => {
