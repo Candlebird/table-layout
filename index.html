@@ -444,6 +444,67 @@
 
   #printView { display: none; }
 
+  /* Touch: no hover, so hover-only controls stay visible; the floor handles its own pinch and pan */
+  #viewport { touch-action: none; }
+  #list, #groups { touch-action: pan-y; }
+  button, select { touch-action: manipulation; }
+  body { -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+  .table.picked .controls { opacity: 1; pointer-events: auto; }
+  .table.picked .meta { opacity: 0; }
+  .table.picked .top { outline: 3px solid var(--ring); outline-offset: 4px; }
+  #sheetBtn, #sheetBack, .sheet-head, .help .touch { display: none; }
+  @media (hover: none) {
+    .chip .x, .grow button { opacity: 1; }
+    .grow .grip { opacity: .7; }
+    .help .mouse, details.help .keys { display: none; }
+    .help li.touch { display: list-item; }
+    .help span.touch { display: inline; }
+  }
+  @media (pointer: coarse) {
+    .chip { height: 42px; }
+    .grow { height: 40px; }
+    .grow button, .chip .x { width: 34px; height: 34px; }
+    .seg button { height: 34px; }
+    .seg button.icon { width: 36px; }
+  }
+
+  /* Phones: the toolbar scrolls sideways and the sidebar becomes a sheet that slides up */
+  @media (max-width: 760px) {
+    html, body { height: 100dvh; }
+    body { grid-template-columns: 1fr; }
+    header { height: 54px; gap: 6px; padding: 0 10px; overflow-x: auto; scrollbar-width: none; }
+    header::-webkit-scrollbar { display: none; }
+    header > *, .seg > * { flex: none; }
+    .brand { width: auto; }
+    .brand h1, header .spacer { display: none; }
+    #addTable, #addCouple, #save, #load, #exportCsv, #print { font-size: 0; gap: 0; }
+    #addTable, #addCouple { width: 36px; padding: 0; justify-content: center; }
+    #cloudLabel { font-size: 12px; }
+    #sheetBtn { display: inline-flex; }
+    #sheetBtn em { font-style: normal; padding: 0 7px; border-radius: 99px; background: rgba(255, 255, 255, .22); font-variant-numeric: tabular-nums; }
+    aside {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+      height: min(80dvh, 680px); border-right: 0; border-radius: 18px 18px 0 0; box-shadow: var(--shadow-lg);
+      transform: translateY(105%); visibility: hidden;
+      transition: transform .3s cubic-bezier(.2, .9, .3, 1), visibility 0s .3s;
+    }
+    body.sheet-open aside { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2, .9, .3, 1); }
+    #sheetBack {
+      display: block; position: fixed; inset: 0; z-index: 59; background: rgba(20, 22, 26, .32);
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    body.sheet-open #sheetBack { opacity: 1; pointer-events: auto; }
+    .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 0 16px; font-weight: 650; }
+    .sheet-head::before { content: ""; position: absolute; left: 50%; top: 6px; width: 36px; height: 4px; margin-left: -18px; border-radius: 99px; background: var(--border-strong); }
+    aside section { padding: 10px 14px; }
+    #groups { max-height: 132px; }
+    #toast { left: 50%; bottom: 14px; max-width: calc(100vw - 24px); }
+    .modal { width: calc(100vw - 24px); padding: 18px 16px 14px; }
+    .modal.sm { width: calc(100vw - 24px); }
+    .modal .row { flex-wrap: wrap; }
+    .modal textarea { height: 34dvh; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   }
@@ -493,6 +554,7 @@
     <div class="mark"><svg class="i"><use href="#i-table"/></svg></div>
     <h1>Table Layout<span>Seating planner</span></h1>
   </div>
+  <button class="primary" id="sheetBtn" title="Guests, groups and tools"><svg class="i"><use href="#i-userplus"/></svg>Guests<em id="sheetCount">0</em></button>
   <div class="add">
     <select id="newSize" title="Seats at the new table">
       <option value="6">6 seats</option><option value="7">7 seats</option><option value="8" selected>8 seats</option><option value="9">9 seats</option><option value="10">10 seats</option>
@@ -525,7 +587,9 @@
   <button class="icon ghost danger" id="clearAll" title="Clear everything"><svg class="i"><use href="#i-trash"/></svg></button>
 </header>
 
+<div id="sheetBack"></div>
 <aside>
+  <div class="sheet-head">Guests<button class="icon ghost" id="sheetClose" title="Close"><svg class="i"><use href="#i-x"/></svg></button></div>
   <section class="side-actions">
     <button class="primary" id="openImport" title="Add names, one per line (I)"><svg class="i"><use href="#i-userplus"/></svg>Import</button>
     <button id="autoFill" title="Seat everyone in the list, keeping groups together, top group closest to the couple (A)"><svg class="i"><use href="#i-wand"/></svg>Auto-fill</button>
@@ -548,16 +612,20 @@
   <details class="help">
     <summary><svg class="i"><use href="#i-help"/></svg>Tips &amp; shortcuts<svg class="i chev"><use href="#i-chev"/></svg></summary>
     <ul>
-      <li>Drag guests onto seats; drop them back here to unseat</li>
+      <li class="mouse">Drag guests onto seats; drop them back here to unseat</li>
+      <li class="touch">Press and hold a guest, then drag onto a seat</li>
       <li>Drop a seated guest on another seat to swap</li>
-      <li>Double-click a seated guest to unseat</li>
-      <li>Right-click a guest to rename or regroup</li>
-      <li>Drag a guest onto a group to tag them</li>
-      <li>Drag a tabletop to move it; double-click to rename</li>
-      <li>Drag the floor to pan, scroll to zoom</li>
-      <li>Search also finds seated guests; click one to fly to their seat</li>
-      <li>Hover a group to light up its seats</li>
-      <li>Drag groups to set Auto-fill priority: the top group sits closest to the sweetheart table</li>
+      <li class="mouse">Double-click a seated guest to unseat</li>
+      <li class="mouse">Right-click a guest to rename or regroup</li>
+      <li class="touch">Tap a guest to rename, regroup or unseat</li>
+      <li class="mouse">Drag a guest onto a group to tag them</li>
+      <li class="mouse">Drag a tabletop to move it; double-click to rename</li>
+      <li class="touch">Drag a tabletop to move it; tap it for seats and delete, tap again to rename</li>
+      <li class="mouse">Drag the floor to pan, scroll to zoom</li>
+      <li class="touch">Drag the floor to pan, pinch to zoom</li>
+      <li>Search also finds seated guests; <span class="mouse">click</span><span class="touch">tap</span> one to fly to their seat</li>
+      <li class="mouse">Hover a group to light up its seats</li>
+      <li><span class="touch">Hold and </span>drag groups to set Auto-fill priority: the top group sits closest to the sweetheart table</li>
     </ul>
     <div class="keys">
       <span><kbd>T</kbd> add table</span><span><kbd>I</kbd> import</span>
@@ -972,6 +1040,7 @@
     }
     if (hits.length && !shown.length) list.firstChild.style.marginTop = '2px';
     $('listCount').textContent = unassigned.length;
+    $('sheetCount').textContent = unassigned.length;
     renderStats(state.people.length - unassigned.length);
   }
 
@@ -1040,7 +1109,7 @@
   function buildTable(t, q, highlight) {
     const ext = extent(t), box = topBox(t), couple = isCouple(t);
     const el = document.createElement('div');
-    el.className = 'table' + (couple ? ' couple' : '');
+    el.className = 'table' + (couple ? ' couple' : '') + (t.id === pickedTable ? ' picked' : '');
     el.dataset.tid = t.id;
     el.dataset.x = t.x;
     el.dataset.y = t.y;
@@ -1130,6 +1199,7 @@
 
   // Fly the view to a seat and pulse it
   function focusSeat(t, i) {
+    document.body.classList.remove('sheet-open');
     const r = viewport.getBoundingClientRect();
     const s = Math.max(view.s, 0.9);
     animateView({ s, x: r.width / 2 - t.x * s, y: r.height / 2 - t.y * s });
@@ -1557,9 +1627,10 @@
   $('groups').addEventListener('pointerdown', e => {
     const row = e.target.closest('.grow');
     if (e.button !== 0 || !row || e.target.closest('button, input')) return;
-    e.preventDefault();
+    if (!isTouch(e)) e.preventDefault();
     const box = $('groups'), before = state.groups.map(g => g.id).join();
     track(e, {
+      hold: isTouch(e) ? 300 : 0,
       start() {
         row.classList.add('lifted');
         document.body.classList.add('dragging-group');
@@ -1676,8 +1747,8 @@
     fillGroupPick($('editGroup'), p.group);
     $('editUnseat').disabled = !seatedIds().has(p.id);
     openModal('editModal');
-    $('editName').focus();
-    $('editName').select();
+    // On a touch screen, don't pop the keyboard up over the dialog unless they tap the name
+    if (lastPointer === 'mouse') { $('editName').focus(); $('editName').select(); }
   }
   $('editSave').onclick = () => {
     const name = $('editName').value.trim();
@@ -1719,38 +1790,62 @@
   }
 
   // Shared plumbing for drags: threshold, pointer/Escape listeners, one update per frame.
-  // end(ev) gets null when the drag was cancelled.
-  function track(e, { start, frame, end }) {
-    const sx = e.clientX, sy = e.clientY;
-    let last = e, active = false, raf = 0;
+  // end(ev) gets null when the drag was cancelled. tap(ev) runs when the pointer let go without dragging.
+  // With hold (ms), the drag only starts after pressing still that long; moving sooner gives the gesture
+  // back to the browser (so a touch list can still scroll).
+  let cancelDrag = null;        // stops whatever drag is running (a second finger turns it into a pinch)
+  function track(e, { start, frame, end, tap, hold }) {
+    const sx = e.clientX, sy = e.clientY, id = e.pointerId;
+    let last = e, active = false, raf = 0, timer = 0;
+    const activate = () => { active = true; start(() => last); };
+    if (hold) timer = setTimeout(() => { timer = 0; navigator.vibrate?.(12); activate(); frame(last); }, hold);
     const move = ev => {
+      if (ev.pointerId !== id) return;
       last = ev;
       if (!active) {
-        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return;
-        active = true;
-        start(() => last);
+        if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < (hold ? 10 : DRAG_THRESHOLD)) return;
+        if (hold) { finish(null); return; }
+        activate();
       }
       if (!raf) raf = requestAnimationFrame(() => { raf = 0; frame(last); });
     };
     const finish = ev => {
+      if (ev && ev.pointerId !== undefined && ev.pointerId !== id) return;
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', finish);
       window.removeEventListener('pointercancel', cancel);
       window.removeEventListener('keydown', key, true);
+      if (cancelDrag === cancel) cancelDrag = null;
+      clearTimeout(timer);
       cancelAnimationFrame(raf);
       if (active && raf && ev) frame(ev); // flush a move that hadn't painted yet
       raf = 0;
       if (active) end(ev);
+      else if (ev) tap?.(ev);
     };
-    const cancel = () => finish(null);
+    const cancel = ev => { if (!ev || ev.pointerId === id) finish(null); };
     const key = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); finish(null); } };
+    cancelDrag = cancel;
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', finish);
     window.addEventListener('pointercancel', cancel);
     window.addEventListener('keydown', key, true);
   }
+  // Once a touch drag has started, keep the browser from scrolling the list underneath it
+  document.addEventListener('touchmove', e => {
+    if (/dragging-/.test(document.body.className)) e.preventDefault();
+  }, { passive: false });
+  // Touch long-presses open the browser's context menu; touch has its own tap and hold instead
+  let lastPointer = 'mouse';
+  window.addEventListener('pointerdown', e => { lastPointer = e.pointerType; }, true);
+  const isTouch = e => e.pointerType === 'touch' || e.pointerType === 'pen';
 
-  function personDrag(e, pid, from, srcEl) {
+  function setSheet(open) { document.body.classList.toggle('sheet-open', open); }
+  $('sheetBtn').onclick = () => setSheet(true);
+  $('sheetClose').onclick = () => setSheet(false);
+  $('sheetBack').onclick = () => setSheet(false);
+
+  function personDrag(e, pid, from, srcEl, opts = {}) {
     const p = personById(pid);
     if (!p) return;
     let ghost, hover = null, stopPan;
@@ -1789,7 +1884,9 @@
       ghost.classList.toggle('has-hint', !!h);
     };
     track(e, {
+      ...opts,
       start(pointer) {
+        setSheet(false); // on a phone, get the sheet out of the way of the floor
         ghost = document.createElement('div');
         ghost.className = 'drag-ghost';
         ghost.innerHTML = '<div class="card"><span class="dot"></span><span class="txt"><span class="nm"></span><span class="hint"></span></span></div>';
@@ -1817,7 +1914,7 @@
     });
   }
 
-  function tableDrag(e, t, el) {
+  function tableDrag(e, t, el, tap) {
     const ox = t.x, oy = t.y, ext = extent(t), grab = toWorld(e.clientX, e.clientY);
     let stopPan;
     const place = (x, y) => {
@@ -1850,33 +1947,83 @@
         }
         if (t.x !== ox || t.y !== oy) changed();
       },
+      tap,
     });
   }
 
   let viewFrame = 0;
   const requestView = () => { if (!viewFrame) viewFrame = requestAnimationFrame(() => { viewFrame = 0; applyView(); }); };
 
-  function panDrag(e) {
+  function panDrag(e, tap) {
     stopViewAnim();
-    const sx = e.clientX, sy = e.clientY, ox = view.x, oy = view.y;
+    const sx = e.clientX, sy = e.clientY, ox = view.x, oy = view.y, id = e.pointerId;
+    let moved = false;
     viewport.classList.add('panning');
-    const move = ev => { view.x = ox + ev.clientX - sx; view.y = oy + ev.clientY - sy; requestView(); };
-    const up = () => {
+    const move = ev => {
+      if (ev.pointerId !== id) return;
+      if (Math.hypot(ev.clientX - sx, ev.clientY - sy) >= DRAG_THRESHOLD) moved = true;
+      view.x = ox + ev.clientX - sx; view.y = oy + ev.clientY - sy; requestView();
+    };
+    const up = ev => {
+      if (ev && ev.pointerId !== id) return;
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', up);
+      if (cancelDrag === up) cancelDrag = null;
       viewport.classList.remove('panning');
       autosave();
+      if (ev?.type === 'pointerup' && !moved) tap?.();
     };
+    cancelDrag = up;
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
   }
 
+  // Two fingers on the floor: pinch to zoom around their midpoint, and pan as they move together
+  const touches = new Map();
+  let pinch = null;
+  viewport.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') touches.set(e.pointerId, e); }, true);
+  window.addEventListener('pointermove', e => {
+    if (!touches.has(e.pointerId)) return;
+    touches.set(e.pointerId, e);
+    if (!pinch) return;
+    const [a, b] = touches.values(), r = viewport.getBoundingClientRect();
+    const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const mx = (a.clientX + b.clientX) / 2 - r.left, my = (a.clientY + b.clientY) / 2 - r.top;
+    const s = clamp(pinch.s * d / pinch.d, 0.25, 2.5);
+    view = { s, x: mx - pinch.wx * s, y: my - pinch.wy * s };
+    requestView();
+  });
+  const touchUp = e => {
+    if (!touches.delete(e.pointerId) || !pinch) return;
+    if (touches.size < 2) { pinch = null; autosave(); }
+  };
+  window.addEventListener('pointerup', touchUp);
+  window.addEventListener('pointercancel', touchUp);
+  function startPinch() {
+    cancelDrag?.();
+    stopViewAnim();
+    const [a, b] = touches.values(), r = viewport.getBoundingClientRect();
+    const mx = (a.clientX + b.clientX) / 2 - r.left, my = (a.clientY + b.clientY) / 2 - r.top;
+    pinch = { s: view.s, d: Math.max(20, Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)),
+      wx: (mx - view.x) / view.s, wy: (my - view.y) / view.s };
+  }
+
+  // Tapping a table on a touch screen shows its seat count and delete controls (hover does that with a mouse)
+  let pickedTable = null;
+  function pickTable(tid) {
+    pickedTable = tid;
+    world.querySelectorAll('.table').forEach(el => el.classList.toggle('picked', el.dataset.tid === tid));
+  }
+
   list.addEventListener('pointerdown', e => {
     if (e.button !== 0 || e.target.closest('.x')) return;
     const chip = e.target.closest('.chip');
-    if (chip) { e.preventDefault(); personDrag(e, chip.dataset.pid, null, chip); }
+    if (!chip) return;
+    if (!isTouch(e)) { e.preventDefault(); personDrag(e, chip.dataset.pid, null, chip); return; }
+    // Touch: tap to edit, press and hold to drag (a quick swipe scrolls the list)
+    personDrag(e, chip.dataset.pid, null, chip, { hold: 280, tap: () => openEdit(chip.dataset.pid) });
   });
   list.addEventListener('click', e => {
     const x = e.target.closest('.x');
@@ -1892,40 +2039,48 @@
   });
   list.addEventListener('contextmenu', e => {
     const chip = e.target.closest('.chip');
-    if (chip) { e.preventDefault(); openEdit(chip.dataset.pid); }
+    if (chip) { e.preventDefault(); if (lastPointer === 'mouse') openEdit(chip.dataset.pid); }
   });
 
   viewport.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
+    if (touches.size >= 2) { e.preventDefault(); startPinch(); return; }
     if (e.target.closest('input, select, button, #emptyHint .card')) return;
     // Committing a table-label edit re-renders the floor, so re-resolve the target afterwards
     if (document.activeElement?.classList.contains('label')) document.activeElement.blur();
     const target = document.elementFromPoint(e.clientX, e.clientY) || e.target;
+    const touch = isTouch(e);
     const seat = target.closest('.seat');
     if (seat) {
       if (seat.dataset.pid) {
         e.preventDefault();
-        personDrag(e, seat.dataset.pid, { tid: seat.dataset.tid, idx: +seat.dataset.idx }, seat);
+        const pid = seat.dataset.pid;
+        personDrag(e, pid, { tid: seat.dataset.tid, idx: +seat.dataset.idx }, seat, touch ? { tap: () => openEdit(pid) } : {});
       }
       return;
     }
     const top = target.closest('.top');
     if (top) {
       e.preventDefault();
-      const el = top.parentElement;
-      tableDrag(e, tableById(el.dataset.tid), el);
+      const el = top.parentElement, tid = el.dataset.tid;
+      // Touch: the first tap shows the table's controls, a tap on a table already showing them renames it
+      tableDrag(e, tableById(tid), el, touch ? () => {
+        if (pickedTable !== tid) { pickTable(tid); return; }
+        const label = world.querySelector(`.table[data-tid="${tid}"] .label`);
+        if (label) { label.readOnly = false; label.focus(); label.select(); }
+      } : null);
       return;
     }
     e.preventDefault();
-    panDrag(e);
+    panDrag(e, () => pickTable(null));
   });
   viewport.addEventListener('dblclick', e => {
     const seat = e.target.closest('.seat.filled');
-    if (seat) unseat(seat.dataset.pid);
+    if (seat && lastPointer === 'mouse') unseat(seat.dataset.pid);
   });
   viewport.addEventListener('contextmenu', e => {
     const seat = e.target.closest('.seat.filled');
-    if (seat) { e.preventDefault(); openEdit(seat.dataset.pid); }
+    if (seat) { e.preventDefault(); if (lastPointer === 'mouse') openEdit(seat.dataset.pid); }
   });
 
   // Smoothly move the view. With an anchor, the world point under (cx, cy) stays put while zooming.

@@ -49,6 +49,19 @@ localStorage, so use **Save online** (or **Save**/**Open**) to move a layout bet
 | Undo and redo | The toolbar buttons, Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z), or **Undo** in the message that pops up |
 | Export | **CSV** (Table, Seat, Name, Group) or **Print** (floor plan plus guest list by table) |
 
+### On a phone or tablet
+
+The page works on touch screens. On a phone (narrower than 760px) the sidebar becomes a sheet. Open it with
+**Guests** in the toolbar, which also shows how many guests are still unseated. The toolbar scrolls sideways.
+
+| Gesture | What it does |
+|---|---|
+| Tap a guest (in the list or in a seat) | Opens it to rename, regroup, unseat or delete |
+| Press and hold a guest, then drag | Moves the guest (the sheet closes so you can see the tables). A quick swipe scrolls the list instead |
+| Tap a table | Shows its seat count and delete controls. Tap it again to rename it; drag it to move it |
+| Drag the floor / pinch | Pans / zooms. Tapping the empty floor hides the table controls |
+| Hold a group, then drag | Reorders the group priority |
+
 ### Keyboard shortcuts
 
 T add table · H sweetheart table · I import · A auto-fill · F fit · G arrange · / search · + − 0 zoom ·
