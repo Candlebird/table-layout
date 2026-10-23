@@ -10,6 +10,12 @@ A single-file app in `index.html`, with no build step and no dependencies.
 The layout autosaves to the browser's localStorage (key `tableLayout.v1`). **Save** downloads a
 `.json` file that you can **Open** later or on another machine.
 
+## Hosting
+
+Live at https://candlebird.github.io/table-layout/. Every push to `main` redeploys it to GitHub Pages
+(`.github/workflows/pages.yml` publishes `index.html` as-is). Each browser keeps its own layout in
+localStorage, so use **Save**/**Open** to move a layout between machines.
+
 ## How to use
 
 | Action | How |
