@@ -10,11 +10,18 @@ A single-file app in `index.html`, with no build step and no dependencies.
 The layout autosaves to the browser's localStorage (key `tableLayout.v1`). **Save** downloads a
 `.json` file that you can **Open** later or on another machine.
 
+**Save online** keeps the layout in the wedding API as well (a Cloudflare Worker + D1, in the sibling
+`WeddingApi` project). After that, every change saves online and the button shows a link,
+`…/table-layout/#cloud=<id>.<key>`, that opens the same layout on any device. Anyone with the link can
+edit, and the key exists only in that link and in localStorage (`tableLayout.cloud`); the server stores
+just its hash. Other devices' changes are picked up every 20 seconds. If someone else saved first, their
+version is loaded and Undo brings yours back.
+
 ## Hosting
 
 Live at https://candlebird.github.io/table-layout/. Every push to `main` redeploys it to GitHub Pages
 (`.github/workflows/pages.yml` publishes `index.html` as-is). Each browser keeps its own layout in
-localStorage, so use **Save**/**Open** to move a layout between machines.
+localStorage, so use **Save online** (or **Save**/**Open**) to move a layout between machines.
 
 ## How to use
 
