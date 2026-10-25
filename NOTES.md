@@ -29,7 +29,7 @@ localStorage, so use **Save online** (or **Save**/**Open**) to move a layout bet
 |---|---|
 | Add a table | Pick a seat count (6–10) in the toolbar, then **+ Add table** (or press T) |
 | Add the couple's table | **♥ Sweetheart** (or H) adds a long table with two seats side by side. There is only one; pressing it again shows the existing one |
-| Move a table | Drag its tabletop. It snaps to a 20px grid, and if you drop it on another table it slides to the nearest free spot |
+| Move a table | Drag its tabletop. It moves freely (no grid snapping) and can overlap other tables |
 | Tidy up | **Arrange** (grid icon, or G) puts all tables in a neat grid in name order |
 | Rename a table | Double-click the table's name. Enter saves and Esc cancels |
 | Resize or delete a table | Hover the tabletop to show the seat dropdown and trash button |

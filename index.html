@@ -264,9 +264,8 @@
   #emptyHint .row { display: flex; gap: 8px; justify-content: center; }
 
   .table { position: absolute; }
-  .table.dragging { z-index: 10; transition: left .09s ease-out, top .09s ease-out; }
+  .table.dragging { z-index: 10; }
   .table.leaving { pointer-events: none; }
-  .table.overlap .top { outline: 3px solid color-mix(in srgb, var(--danger) 55%, transparent); outline-offset: 5px; }
   .table .top {
     position: absolute; border-radius: 50%;
     background: radial-gradient(circle at 38% 30%, var(--wood-1) 0%, var(--wood-2) 58%, var(--wood-3) 100%);
@@ -1929,10 +1928,10 @@
     };
     const frame = ev => {
       const w = toWorld(ev.clientX, ev.clientY);
-      const x = snap(ox + w.x - grab.x), y = snap(oy + w.y - grab.y);
+      // Moves freely (no grid) and may overlap other tables
+      const x = Math.round(ox + w.x - grab.x), y = Math.round(oy + w.y - grab.y);
       if (x === t.x && y === t.y) return;
       place(x, y);
-      el.classList.toggle('overlap', !spotFree(x, y, t, t));
     };
     track(e, {
       start(pointer) {
@@ -1943,12 +1942,8 @@
       frame,
       end(ev) {
         stopPan();
-        el.classList.remove('dragging', 'overlap');
+        el.classList.remove('dragging');
         if (!ev) place(ox, oy);                       // Esc: put it back
-        else if (!spotFree(t.x, t.y, t, t)) {
-          const s = freeSpot(t.x, t.y, t, t);
-          t.x = s.x; t.y = s.y;                       // render() glides it out of the way
-        }
         if (t.x !== ox || t.y !== oy) changed();
       },
       tap,
