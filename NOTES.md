@@ -164,3 +164,7 @@ The single-letter shortcuts are ignored while you're typing in a text field.
 - Autosave across reloads.
 
 No console errors in any of these tests.
+- **Backyard photo and real scale.** The floor shows `backyard.jpg` (the drone photo, originally 500 px =
+  10 ft, resized to the app's scale of 2.6 px per inch). Tables with 9–10 seats are 60" across and tables
+  with 6–8 seats are 48". Fit zooms to show the whole photo plus every table, and Print draws the photo faintly
+  behind the plan. The deploy workflow copies `backyard.jpg` next to `index.html`.

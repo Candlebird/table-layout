@@ -244,6 +244,7 @@
   }
   #viewport.panning { cursor: grabbing; }
   #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #backdrop { position: absolute; left: 0; top: 0; pointer-events: none; user-select: none; box-shadow: 0 6px 24px rgba(28, 30, 33, .22); }
 
   #emptyHint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 2; }
   #emptyHint .card {
@@ -641,7 +642,7 @@
 </aside>
 
 <main id="viewport">
-  <div id="world"></div>
+  <div id="world"><img id="backdrop" src="backyard.jpg" width="3052" height="1717" alt="" draggable="false"></div>
   <div id="emptyHint">
     <div class="card">
       <svg class="art" viewBox="0 0 120 120" aria-hidden="true">
@@ -773,8 +774,11 @@
   const personById = id => state.people.find(p => p.id === id);
   const groupById = id => id ? state.groups.find(g => g.id === id) : null;
 
-  // Geometry: table-top radius and seat ring radius grow with seat count
-  const topRadius = n => 55 + (n - 6) * 6;
+  // Real-world scale: 2.6 world px per inch (31.2 per foot), so the backyard photo and the
+  // tables line up. 9–10 seat tables are 60" across and 6–8 seat tables are 48".
+  const PX_PER_IN = 2.6;
+  const BACKDROP = { src: 'backyard.jpg', w: 3052, h: 1717 };   // drone photo, resized to world scale
+  const topRadius = n => (n >= 9 ? 30 : 24) * PX_PER_IN;
   const ringRadius = n => topRadius(n) + 40;
   const halfSize = n => ringRadius(n) + SEAT / 2 + 4;
   // The sweetheart table: a long top with both seats side by side behind it
@@ -842,7 +846,7 @@
   }
   function applyData(d) {
     state = normalize(d);
-    if (d.view && isFinite(d.view.s)) view = { x: +d.view.x || 0, y: +d.view.y || 0, s: clamp(+d.view.s, 0.25, 2.5) };
+    if (d.view && isFinite(d.view.s)) view = { x: +d.view.x || 0, y: +d.view.y || 0, s: clamp(+d.view.s, 0.1, 2.5) };
     if (!groupById(groupFilter)) groupFilter = null;
   }
   let saveTimer;
@@ -1074,7 +1078,7 @@
     world.classList.toggle('filtering', highlight);
     const before = new Map();
     for (const el of world.querySelectorAll(':scope > .table:not(.leaving)')) before.set(el.dataset.tid, el);
-    world.innerHTML = '';
+    for (const el of world.querySelectorAll(':scope > .table')) el.remove();
     let pops = 0;
     for (const t of state.tables) {
       const el = buildTable(t, q, highlight);
@@ -1991,7 +1995,7 @@
     const [a, b] = touches.values(), r = viewport.getBoundingClientRect();
     const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
     const mx = (a.clientX + b.clientX) / 2 - r.left, my = (a.clientY + b.clientY) / 2 - r.top;
-    const s = clamp(pinch.s * d / pinch.d, 0.25, 2.5);
+    const s = clamp(pinch.s * d / pinch.d, 0.1, 2.5);
     view = { s, x: mx - pinch.wx * s, y: my - pinch.wy * s };
     requestView();
   });
@@ -2103,7 +2107,7 @@
   }
 
   function zoomAt(factor, cx, cy, animate) {
-    const s = clamp(view.s * factor, 0.25, 2.5);
+    const s = clamp(view.s * factor, 0.1, 2.5);
     const wx = (cx - view.x) / view.s, wy = (cy - view.y) / view.s;
     const to = { s, x: cx - wx * s, y: cy - wy * s };
     if (animate) { animateView(to, { cx, cy, wx, wy }); return; }
@@ -2147,12 +2151,15 @@
     }
     return { x0, y0, x1, y1 };
   }
+  // Fit shows the whole backyard photo as well as every table
   function fit() {
-    const b = bounds();
+    const t = bounds();
+    const b = t
+      ? { x0: Math.min(t.x0, 0), y0: Math.min(t.y0, 0), x1: Math.max(t.x1, BACKDROP.w), y1: Math.max(t.y1, BACKDROP.h) }
+      : { x0: 0, y0: 0, x1: BACKDROP.w, y1: BACKDROP.h };
     const r = viewport.getBoundingClientRect();
-    if (!b) { view = { x: 40, y: 40, s: 1 }; applyView(); return; }
     const pad = 40;
-    const s = clamp(Math.min((r.width - pad * 2) / (b.x1 - b.x0), (r.height - pad * 2) / (b.y1 - b.y0)), 0.25, 1.5);
+    const s = clamp(Math.min((r.width - pad * 2) / (b.x1 - b.x0), (r.height - pad * 2) / (b.y1 - b.y0)), 0.1, 1.5);
     animateView({ s, x: (r.width - (b.x1 - b.x0) * s) / 2 - b.x0 * s, y: (r.height - (b.y1 - b.y0) * s) / 2 - b.y0 * s });
   }
   $('fit').onclick = fit;
@@ -2280,6 +2287,7 @@
     if (b) {
       const pad = 20;
       svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x0 - pad} ${b.y0 - pad} ${b.x1 - b.x0 + pad * 2} ${b.y1 - b.y0 + pad * 2}" font-family="system-ui, sans-serif">`;
+      svg += `<image href="${BACKDROP.src}" width="${BACKDROP.w}" height="${BACKDROP.h}" opacity=".55"/>`;
       for (const t of state.tables) {
         const bx = topBox(t);
         svg += isCouple(t)
