@@ -505,6 +505,109 @@
     .modal textarea { height: 34dvh; }
   }
 
+  /* View tabs, and the layout-version button */
+  .tabs button.on, .cseg button.on { background: var(--panel); color: var(--text); box-shadow: var(--shadow-sm); }
+  body.mode-cards .floor-only, body.mode-cards aside, body.mode-cards #viewport, body.mode-cards #sheetBack { display: none !important; }
+  #versionBtn { max-width: 190px; }
+  #versionBtn span { overflow: hidden; text-overflow: ellipsis; }
+  #versionList { display: flex; flex-direction: column; gap: 4px; max-height: 46vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+  .vrow { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 12px; border: 1px solid var(--border); border-radius: 10px; }
+  .vrow.on { border-color: rgba(64, 87, 214, .45); background: var(--accent-soft); }
+  .vrow .vname { flex: 1; min-width: 0; }
+  .vrow .vname b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vrow .vname small { color: var(--muted); font-size: 11.5px; }
+  .vrow input[type=text] { flex: 1; min-width: 0; height: 30px; }
+  .vrow button { height: 30px; }
+  .vrow button.icon { width: 30px; }
+  .vnew { display: flex; gap: 8px; }
+  .vnew input { flex: 1; min-width: 0; }
+  .modal .ccheck { flex-direction: row; font-weight: 500; }
+
+  /* Name cards */
+  #cardsView { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: var(--side) 1fr; min-height: 0; --card-ink: #3b3128; --fade: 1; }
+  .cards-panel { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; min-height: 0; }
+  .cards-panel section { padding: 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+  .cards-panel .sec-head { margin-bottom: 0; }
+  .cfield { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 32px; color: var(--text-2); font-weight: 500; }
+  .cfield select { flex: 1; min-width: 0; max-width: 170px; }
+  .cards-panel select.wide { width: 100%; }
+  .cards-panel input[type=number] {
+    width: 66px; height: 32px; padding: 0 8px; border: 1px solid var(--border-strong); border-radius: var(--radius);
+    background: var(--panel); user-select: text;
+  }
+  .cards-panel input[type=number]:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+  .cards-panel input[type=checkbox], .cards-panel input[type=range], .modal input[type=checkbox] { accent-color: var(--accent); }
+  .ccheck input[type=checkbox] { width: 16px; height: 16px; margin: 0; flex: none; }
+  .cards-panel input[type=range] { width: 130px; }
+  .cards-panel input[type=color] { width: 34px; height: 28px; padding: 2px; border: 1px solid var(--border-strong); border-radius: 7px; background: var(--panel); cursor: pointer; }
+  .ccheck { display: flex; align-items: center; gap: 9px; color: var(--text-2); font-weight: 500; cursor: pointer; }
+  .cseg { display: flex; gap: 2px; padding: 3px; background: var(--sunken); border-radius: 10px; }
+  .cseg.grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .cseg button { flex: 1; height: 28px; padding: 0 8px; border: 0; border-radius: 7px; background: transparent; font-size: 12.5px; }
+  .cseg button:hover:not(:disabled) { background: rgba(255, 255, 255, .6); }
+  .chint { font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .chint.warn { color: #8a5800; }
+  .csize { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+  .imgpick { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px dashed var(--border-strong); border-radius: 10px; transition: border-color .15s, background-color .15s; }
+  .imgpick.drop-hover { border-color: var(--accent); background: var(--accent-soft); }
+  .imgpick .thumb { width: 54px; height: 40px; flex: none; border-radius: 6px; overflow: hidden; background: var(--sunken); display: grid; place-items: center; color: var(--muted); cursor: pointer; }
+  .imgpick .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .imgpick .what { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 550; color: var(--text-2); line-height: 1.3; }
+  .imgpick .what small { display: block; font-weight: 400; color: var(--muted); }
+  .imgpick button.icon { width: 24px; }
+
+  .cards-main { min-width: 0; min-height: 0; overflow: auto; padding: 22px 24px 48px; }
+  .cards-top {
+    display: flex; gap: 22px; align-items: center; max-width: 920px; margin: 0 auto 26px; padding: 14px 20px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm);
+  }
+  .cards-info { flex: 1; min-width: 0; }
+  .cards-info h2 { margin: 0 0 6px; font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
+  .cards-info ol { margin: 0 0 12px; padding-left: 20px; color: var(--text-2); line-height: 1.6; }
+  .prism-box { position: relative; flex: none; width: 250px; height: 170px; perspective: 1000px; }
+  .prism-scale { position: absolute; left: 50%; top: 50%; transform-style: preserve-3d; }
+  .prism { position: relative; transform-style: preserve-3d; animation: prism-spin 16s linear infinite; }
+  .prism-box:hover .prism { animation-play-state: paused; }
+  .prism .pf { position: absolute; left: 0; top: 0; transform-origin: 50% 0; backface-visibility: hidden; background: #fff; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); }
+  .prism .pf.shadow { transform-origin: 50% 50%; backface-visibility: visible; background: radial-gradient(closest-side, rgba(40, 30, 20, .3), transparent); box-shadow: none; }
+  @keyframes prism-spin { from { transform: rotateX(14deg) rotateY(-30deg); } to { transform: rotateX(14deg) rotateY(330deg); } }
+
+  #cardSheets { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px 24px; --k: .7; }
+  .cards-empty { max-width: 420px; margin: 30px auto; text-align: center; color: var(--muted); line-height: 1.5; }
+  .cards-empty b { display: block; color: var(--text-2); font-size: 14px; margin-bottom: 2px; }
+  .sheet-wrap { position: relative; flex: none; width: calc(var(--pw) * var(--k)); height: calc(var(--ph) * var(--k)); background: #fff; box-shadow: var(--shadow-md); }
+  .sheet-wrap::after { content: attr(data-label); position: absolute; left: 0; right: 0; top: 100%; margin-top: 8px; text-align: center; font-size: 11.5px; color: var(--muted); }
+  .sheet { position: relative; width: var(--pw); height: var(--ph); overflow: hidden; background: #fff; transform: scale(var(--k)); transform-origin: 0 0; }
+  .sheet > svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .ncard { position: absolute; display: flex; flex-direction: column; }
+  .ncard.rot { flex-direction: row; }
+  .ncard .panel { position: relative; flex: none; overflow: hidden; }
+  .ncard .pin { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .ncard .panel.front .face { transform: rotate(180deg); }
+  .ncard .panel.flap span {
+    position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 0 .2in;
+    font: 500 7.5pt/1.3 "Segoe UI", system-ui, sans-serif; color: #b8b8b8; letter-spacing: .03em;
+  }
+  .face { position: relative; width: 100%; height: 100%; overflow: hidden; color: var(--card-ink); }
+  .fimg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: var(--fade); }
+  .fimg.wrap { top: -100%; height: 200%; }
+  .fimg.wrap.back { transform: rotate(180deg); }
+  .ftext { position: absolute; inset: .1in .14in; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .ftext.top { justify-content: flex-start; }
+  .ftext.bottom { justify-content: flex-end; }
+  .fname { font-family: var(--card-font); font-weight: var(--card-weight); white-space: nowrap; line-height: 1.12; }
+  .ftable { font-family: var(--card-sub); font-weight: 600; text-transform: uppercase; letter-spacing: .18em; line-height: 1.3; margin-top: .03in; opacity: .85; white-space: nowrap; }
+  #cardsView * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  @media (max-width: 760px) {
+    #cardsView { display: block; overflow-y: auto; }
+    .cards-panel { overflow: visible; border-right: 0; }
+    .cards-main { overflow: visible; padding: 14px 12px 36px; }
+    .cards-top { flex-direction: column; align-items: stretch; }
+    .prism-box { width: 100%; }
+    #versionBtn { max-width: 130px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   }
@@ -519,6 +622,16 @@
     #printView .lists h3 { font-size: 13px; margin: 0 0 4px; }
     #printView ol, #printView ul { margin: 0; padding-left: 18px; }
     #printView .g { color: #666; }
+    /* Name cards: each sheet is one page, at real size */
+    body.mode-cards #printView { display: none !important; }
+    body.mode-cards #cardsView { display: block !important; overflow: visible; }
+    .cards-panel, .cards-top { display: none !important; }
+    .cards-main { padding: 0 !important; overflow: visible !important; }
+    #cardSheets { display: block !important; }
+    .sheet-wrap { width: auto !important; height: auto !important; box-shadow: none !important; break-after: page; }
+    .sheet-wrap:last-child { break-after: auto; }
+    .sheet-wrap::after { display: none; }
+    .sheet { transform: none !important; height: calc(var(--ph) - 1px); }
   }
 </style>
 </head>
@@ -547,6 +660,9 @@
   <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><path d="M2 20h20"/><path d="m4 20 8-15 8 15"/><path d="M9.5 15h5"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
 </svg>
 
 <header>
@@ -554,19 +670,23 @@
     <div class="mark"><svg class="i"><use href="#i-table"/></svg></div>
     <h1>Table Layout<span>Seating planner</span></h1>
   </div>
-  <button class="primary" id="sheetBtn" title="Guests, groups and tools"><svg class="i"><use href="#i-userplus"/></svg>Guests<em id="sheetCount">0</em></button>
-  <div class="add">
+  <div class="seg tabs" role="tablist" aria-label="View">
+    <button id="tabFloor" class="on" role="tab" title="The floor plan">Floor plan</button>
+    <button id="tabCards" role="tab" title="Printable folding name cards"><svg class="i"><use href="#i-card"/></svg>Name cards</button>
+  </div>
+  <button class="primary floor-only" id="sheetBtn" title="Guests, groups and tools"><svg class="i"><use href="#i-userplus"/></svg>Guests<em id="sheetCount">0</em></button>
+  <div class="add floor-only">
     <select id="newSize" title="Seats at the new table">
       <option value="6">6 seats</option><option value="7">7 seats</option><option value="8" selected>8 seats</option><option value="9">9 seats</option><option value="10">10 seats</option>
     </select>
     <button class="primary" id="addTable" title="Add a table (T)"><svg class="i"><use href="#i-plus"/></svg>Add table</button>
   </div>
-  <button id="addCouple" title="Add the sweetheart table for the couple (H)"><svg class="i"><use href="#i-heart"/></svg>Sweetheart</button>
-  <div class="seg">
+  <button class="floor-only" id="addCouple" title="Add the sweetheart table for the couple (H)"><svg class="i"><use href="#i-heart"/></svg>Sweetheart</button>
+  <div class="seg floor-only">
     <button class="icon" id="undo" title="Undo (Ctrl+Z)"><svg class="i"><use href="#i-undo"/></svg></button>
     <button class="icon" id="redo" title="Redo (Ctrl+Y)"><svg class="i"><use href="#i-redo"/></svg></button>
   </div>
-  <div class="seg">
+  <div class="seg floor-only">
     <button class="icon" id="zoomOut" title="Zoom out (−)"><svg class="i"><use href="#i-minus"/></svg></button>
     <button id="zoomLabel" title="Reset zoom to 100%">100%</button>
     <button class="icon" id="zoomIn" title="Zoom in (+)"><svg class="i"><use href="#i-plus"/></svg></button>
@@ -574,6 +694,7 @@
     <button class="icon" id="arrange" title="Arrange tables in a tidy grid (G)"><svg class="i"><use href="#i-grid"/></svg></button>
   </div>
   <span class="spacer"></span>
+  <button id="versionBtn" title="Layout versions: keep several seating plans and switch between them"><svg class="i"><use href="#i-layers"/></svg><span id="versionLabel">Layout 1</span></button>
   <div class="seg">
     <button id="cloud" title="Keep the layout online, so it opens on any device"><svg class="i"><use href="#i-cloud"/></svg><span id="cloudLabel">Save online</span></button>
     <button id="save" title="Download the layout as a .json file (Ctrl+S)"><svg class="i"><use href="#i-save"/></svg>Save</button>
@@ -581,10 +702,10 @@
     <input type="file" id="fileInput" accept=".json,application/json" hidden>
   </div>
   <div class="seg">
-    <button id="exportCsv" title="Download the guest list as a spreadsheet (.csv)"><svg class="i"><use href="#i-sheet"/></svg>CSV</button>
+    <button class="floor-only" id="exportCsv" title="Download the guest list as a spreadsheet (.csv)"><svg class="i"><use href="#i-sheet"/></svg>CSV</button>
     <button id="print" title="Print the floor plan and guest list (Ctrl+P)"><svg class="i"><use href="#i-print"/></svg>Print</button>
   </div>
-  <button class="icon ghost danger" id="clearAll" title="Clear everything"><svg class="i"><use href="#i-trash"/></svg></button>
+  <button class="icon ghost danger floor-only" id="clearAll" title="Clear everything"><svg class="i"><use href="#i-trash"/></svg></button>
 </header>
 
 <div id="sheetBack"></div>
@@ -676,6 +797,65 @@
   </div>
 </main>
 
+<div id="cardsView" hidden>
+  <div class="cards-panel">
+    <section>
+      <div class="sec-head"><span>Cards</span></div>
+      <div class="cfield">Guests <select id="cWho"><option value="seated">Seated guests</option><option value="all">Everyone</option></select></div>
+      <div class="cfield">Order <select id="cSort"><option value="table">By table</option><option value="name">By name</option></select></div>
+      <div class="cfield">Extra blank cards <input type="number" id="cBlanks" min="0" max="60" step="1"></div>
+      <div class="chint" id="cCount"></div>
+    </section>
+    <section>
+      <div class="sec-head"><span>Size of each side</span></div>
+      <select id="cSize" class="wide" title="Size of each side of the card"></select>
+      <div class="csize" id="cCustom"><input type="number" id="cW" min="1" max="8" step="0.1" title="Width (inches)"> × <input type="number" id="cH" min="0.75" max="3" step="0.1" title="Height (inches)"> in</div>
+      <div class="chint" id="cSizeHint"></div>
+    </section>
+    <section>
+      <div class="sec-head"><span>Text</span></div>
+      <div class="cfield">Font <select id="cFont">
+        <option value="script">Script</option><option value="garamond">Garamond</option><option value="playfair">Playfair</option><option value="sans">Modern sans</option>
+      </select></div>
+      <div class="cfield">Color <input type="color" id="cInk" title="Text color"></div>
+      <div class="cfield">Position <div class="cseg" id="cAlign"><button data-v="top">Top</button><button data-v="middle">Middle</button><button data-v="bottom">Bottom</button></div></div>
+      <label class="ccheck"><input type="checkbox" id="cShowTable">Show the table name</label>
+      <label class="ccheck"><input type="checkbox" id="cBoth">Name on both sides</label>
+    </section>
+    <section>
+      <div class="sec-head"><span>Images</span></div>
+      <div class="cseg grid" id="cImgMode"><button data-v="none">None</button><button data-v="same">Same on both sides</button><button data-v="split">Front &amp; back</button><button data-v="wrap">Wrap over the top</button></div>
+      <div class="imgpick" id="pickFront"><div class="thumb" title="Choose an image"></div><div class="what"></div><button class="icon ghost mini" title="Remove the image"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <div class="imgpick" id="pickBack"><div class="thumb" title="Choose an image"></div><div class="what"></div><button class="icon ghost mini" title="Remove the image"><svg class="i"><use href="#i-x"/></svg></button></div>
+      <div class="cfield" id="cFitRow">Image fit <div class="cseg" id="cFit"><button data-v="cover">Fill</button><button data-v="contain">Whole image</button></div></div>
+      <div class="cfield" id="cFadeRow">Strength <input type="range" id="cFade" min="10" max="100" step="5" title="How strongly the image prints"></div>
+      <div class="chint" id="cImgHint"></div>
+      <input type="file" id="cFile" accept="image/*" hidden>
+    </section>
+    <section>
+      <div class="sec-head"><span>Guides</span></div>
+      <label class="ccheck"><input type="checkbox" id="cCut">Cut lines and crop marks</label>
+      <label class="ccheck"><input type="checkbox" id="cFold">Fold lines</label>
+    </section>
+  </div>
+  <div class="cards-main">
+    <div class="cards-top">
+      <div class="prism-box" id="prismBox" title="The first card, folded"></div>
+      <div class="cards-info">
+        <h2>Print, cut, fold</h2>
+        <ol>
+          <li>Print on letter paper at <b>100% / “Actual size”</b>, not “Fit to page”</li>
+          <li>Cut along the gray lines; the marks in the margin show where</li>
+          <li>Fold on every dashed line, with the printing on the outside</li>
+          <li>Lay the blank flap over the bottom panel and glue or staple it</li>
+        </ol>
+        <button class="primary" id="cPrint"><svg class="i"><use href="#i-print"/></svg><span>Print</span></button>
+      </div>
+    </div>
+    <div id="cardSheets"></div>
+  </div>
+</div>
+
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button class="act" hidden>Undo</button></div>
 
 <div class="modal-back" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
@@ -747,8 +927,34 @@
   </div>
 </div>
 
+<div class="modal-back" id="versionModal" role="dialog" aria-modal="true" aria-labelledby="versionTitle">
+  <div class="modal sm">
+    <h2 id="versionTitle">Layout versions</h2>
+    <p>Keep several seating plans and switch between them. Each version has its own tables, guests and groups. All versions are saved together, in the file and online.</p>
+    <div id="versionList"></div>
+    <label>New version, copied from the one you're on
+      <div class="vnew"><input type="text" id="versionName" maxlength="40" placeholder="Name, e.g. Plan B"><button class="primary" id="versionAdd"><svg class="i"><use href="#i-plus"/></svg>Copy</button></div>
+    </label>
+    <div class="row"><button id="versionDone">Done</button></div>
+  </div>
+</div>
+
+<div class="modal-back" id="printModal" role="dialog" aria-modal="true" aria-labelledby="printTitle">
+  <div class="modal sm">
+    <h2 id="printTitle">Print the seating chart</h2>
+    <p>The floor plan comes first, then the guest list by table.</p>
+    <label class="ccheck"><input type="checkbox" id="printPhoto">Include the backyard photo</label>
+    <div class="hint">Leave it off for a clean, printer-friendly page that saves ink.</div>
+    <div class="row">
+      <button id="printCancel">Cancel</button>
+      <button class="primary" id="printGo"><svg class="i"><use href="#i-print"/></svg>Print</button>
+    </div>
+  </div>
+</div>
+
 <div id="printView"></div>
 
+<style id="pageStyle"></style>
 <script>
 (() => {
   const G = 20;                 // grid snap size (world px)
@@ -815,8 +1021,20 @@
   }
 
   // ---------- persistence ----------
+  // Layout versions: every version is a full {people, groups, tables}. The one being edited lives in `state`;
+  // the others wait in `layouts`. The file keeps the active one at the top level too, so older copies of the
+  // app still open it.
+  const ACTIVE_KEY = 'tableLayout.active';
+  let layouts = [];             // [{ id, name, data }] (data of the active one is stale; `state` is current)
+  let activeLayout = null;
+  const activeEntry = () => layouts.find(l => l.id === activeLayout);
   function serialize() {
-    return { app: 'TableLayout', version: 2, people: state.people, groups: state.groups, tables: state.tables, view };
+    const cur = { people: state.people, groups: state.groups, tables: state.tables };
+    return {
+      app: 'TableLayout', version: 3, ...cur, view,
+      layouts: layouts.map(l => ({ id: l.id, name: l.name, data: l.id === activeLayout ? cur : l.data })),
+      active: activeLayout,
+    };
   }
   function normalize(d) {
     if (!d || !Array.isArray(d.people) || !Array.isArray(d.tables)) throw new Error('Not a Table Layout file');
@@ -844,7 +1062,20 @@
     return { people, groups, tables };
   }
   function applyData(d) {
-    state = normalize(d);
+    const main = normalize(d);
+    const list = [];
+    for (const l of Array.isArray(d.layouts) ? d.layouts : []) {
+      if (!l || !l.id || list.some(x => x.id === l.id)) continue;
+      try { list.push({ id: String(l.id), name: String(l.name || 'Layout').slice(0, 40), data: normalize(l.data) }); } catch {}
+    }
+    if (!list.length) list.push({ id: uid(), name: 'Layout 1', data: main });
+    layouts = list;
+    // Each device remembers which version it is on; a new device starts on the file's
+    let pref = null;
+    try { pref = localStorage.getItem(ACTIVE_KEY); } catch {}
+    const pick = list.find(l => l.id === pref) || list.find(l => l.id === d.active) || list[0];
+    activeLayout = pick.id;
+    state = pick.id === d.active ? main : pick.data;
     if (d.view && isFinite(d.view.s)) view = { x: +d.view.x || 0, y: +d.view.y || 0, s: clamp(+d.view.s, 0.1, 2.5) };
     if (!groupById(groupFilter)) groupFilter = null;
   }
@@ -861,6 +1092,12 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) applyData(JSON.parse(raw));
     } catch {}
+    ensureLayouts();
+  }
+  function ensureLayouts() {
+    if (layouts.length && activeEntry()) return;
+    layouts = [{ id: uid(), name: 'Layout 1', data: null }];
+    activeLayout = layouts[0].id;
   }
   // Toast: short status message, optionally with an Undo button. Hovering keeps it open.
   const toast = $('toast');
@@ -948,6 +1185,8 @@
     updateUndoButtons();
     $('emptyHint').hidden = state.tables.length > 0;
     $('clearSeats').disabled = !seatedIds().size;
+    showVersion();
+    if (mode === 'cards') renderCards();
     labelControls();
   }
 
@@ -2196,6 +2435,7 @@
     const file = { s: 'save', o: 'load', p: 'print' }[k];
     if (mod && !e.shiftKey && !e.altKey && file) { e.preventDefault(); $(file).click(); return; }
     if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (mode === 'cards') return;     // the floor plan's shortcuts don't apply to the cards
     if (mod && k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
     if (mod && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
     if (mod || e.altKey) return;
@@ -2241,7 +2481,7 @@
 
   $('clearAll').onclick = () => {
     if (!state.people.length && !state.tables.length && !state.groups.length) { flash('Nothing to clear'); return; }
-    confirmBox('Clear everything?', 'This removes all tables, guests and groups. You can undo it afterwards.', 'Clear all', () => {
+    confirmBox('Clear everything?', (layouts.length > 1 ? `This removes all tables, guests and groups from “${activeEntry().name}”. The other versions stay.` : 'This removes all tables, guests and groups.') + ' You can undo it afterwards.', 'Clear all', () => {
       state = { people: [], groups: [], tables: [] };
       groupFilter = null;
       view = { x: 40, y: 40, s: 1 };
@@ -2282,12 +2522,14 @@
     if (b) {
       const pad = 20;
       svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x0 - pad} ${b.y0 - pad} ${b.x1 - b.x0 + pad * 2} ${b.y1 - b.y0 + pad * 2}" font-family="system-ui, sans-serif">`;
-      svg += `<image href="${BACKDROP.src}" width="${BACKDROP.w}" height="${BACKDROP.h}" opacity=".55"/>`;
+      // Printer-friendly unless asked for the photo: white tabletops and dark outlines, no backdrop
+      if (printPhoto) svg += `<image href="${BACKDROP.src}" width="${BACKDROP.w}" height="${BACKDROP.h}" opacity=".55"/>`;
+      const topFill = printPhoto ? '#f1e8d8' : '#fff', topLine = printPhoto ? '#8a7350' : '#444';
       for (const t of state.tables) {
         const bx = topBox(t);
         svg += isCouple(t)
-          ? `<rect x="${t.x + bx.x}" y="${t.y + bx.y}" width="${bx.w}" height="${bx.h}" rx="16" fill="#f1e8d8" stroke="#8a7350" stroke-width="2"/>`
-          : `<circle cx="${t.x}" cy="${t.y}" r="${bx.w / 2}" fill="#f1e8d8" stroke="#8a7350" stroke-width="2"/>`;
+          ? `<rect x="${t.x + bx.x}" y="${t.y + bx.y}" width="${bx.w}" height="${bx.h}" rx="16" fill="${topFill}" stroke="${topLine}" stroke-width="2"/>`
+          : `<circle cx="${t.x}" cy="${t.y}" r="${bx.w / 2}" fill="${topFill}" stroke="${topLine}" stroke-width="2"/>`;
         const ly = t.y + bx.y + bx.h / 2 + 5;
         svg += `<text x="${t.x}" y="${ly}" text-anchor="middle" font-size="15" font-weight="600">${isCouple(t) ? '♥ ' : ''}${esc(t.label)}${isCouple(t) ? ' ♥' : ''}</text>`;
         for (let i = 0; i < t.seats; i++) {
@@ -2295,7 +2537,7 @@
           const sx = t.x + at.x, sy = t.y + at.y;
           const p = t.assign[i] && personById(t.assign[i]);
           const g = p && groupById(p.group);
-          svg += `<circle cx="${sx}" cy="${sy}" r="${SEAT / 2}" fill="${g ? g.color + '22' : '#fff'}" stroke="${g ? g.color : '#999'}" stroke-width="1.5"/>`;
+          svg += `<circle cx="${sx}" cy="${sy}" r="${SEAT / 2}" fill="${g ? g.color + '22' : '#fff'}" stroke="${g ? g.color : (printPhoto ? '#999' : '#777')}" stroke-width="1.5"/>`;
           // Wrap name onto up to 3 lines
           // Long hyphenated words may break after the hyphen
           const words = p ? p.name.split(/\s+/).flatMap(w => w.length > 10 ? w.split(/(?<=-)/) : [w]) : [String(i + 1)];
@@ -2330,7 +2572,22 @@
     lists += '</div>';
     $('printView').innerHTML = svg + '<h2>Guest list by table</h2>' + lists;
   }
-  $('print').onclick = () => { buildPrintView(); window.print(); };
+  // Print: the cards tab prints its sheets; the floor plan asks whether to include the photo first
+  const PRINT_KEY = 'tableLayout.print';
+  let printPhoto = false;
+  try { printPhoto = JSON.parse(localStorage.getItem(PRINT_KEY))?.photo === true; } catch {}
+  $('print').onclick = () => {
+    if (mode === 'cards') { printCards(); return; }
+    $('printPhoto').checked = printPhoto;
+    openModal('printModal');
+    $('printGo').focus();
+  };
+  $('printPhoto').onchange = () => {
+    printPhoto = $('printPhoto').checked;
+    try { localStorage.setItem(PRINT_KEY, JSON.stringify({ photo: printPhoto })); } catch {}
+  };
+  $('printCancel').onclick = closeModals;
+  $('printGo').onclick = () => { closeModals(); buildPrintView(); setTimeout(() => window.print(), 50); };
   window.addEventListener('beforeprint', buildPrintView);
 
   // ---------- online copy ----------
@@ -2390,6 +2647,9 @@
       } else if (res.status === 409) {
         applyRemote(body.current);
         flash('Someone else saved changes first · their layout is loaded', { undo: true });
+      } else if (res.status === 413) {
+        cloudStatus('Not saved online', 'Too big to save online');
+        flash('Too big to save online · delete a layout version you no longer need', { error: true });
       } else {
         cloudStatus('Not saved online', body.error === 'Wrong key' ? 'This link no longer allows saving' : `Saving online failed (${res.status})`);
         flash('Could not save online: ' + (body.error || res.status), { error: true });
@@ -2476,11 +2736,526 @@
   }
   window.addEventListener('hashchange', initCloud);
 
+  // ---------- layout versions ----------
+  function showVersion() {
+    const l = activeEntry();
+    $('versionLabel').textContent = l ? l.name : 'Layout';
+    $('versionBtn').title = `Layout versions: you're on “${l ? l.name : ''}”` + (layouts.length > 1 ? ` (1 of ${layouts.length})` : '') +
+      '. Keep several seating plans and switch between them';
+  }
+  function layoutStats(l) {
+    const d = l.id === activeLayout ? state : l.data || { people: [], tables: [] };
+    const seated = d.tables.reduce((n, t) => n + t.assign.filter(Boolean).length, 0);
+    return `${d.tables.length} table${d.tables.length === 1 ? '' : 's'} · ${seated} of ${d.people.length} seated`;
+  }
+  let renamingLayout = null;
+  function renderVersions() {
+    const box = $('versionList');
+    box.innerHTML = layouts.map(l => {
+      const on = l.id === activeLayout;
+      if (l.id === renamingLayout)
+        return `<div class="vrow${on ? ' on' : ''}" data-id="${l.id}"><input type="text" maxlength="40" value="${esc(l.name)}" aria-label="Version name">` +
+          `<button class="primary" data-act="saveName">Save</button></div>`;
+      return `<div class="vrow${on ? ' on' : ''}" data-id="${l.id}">` +
+        `<div class="vname"><b>${esc(l.name)}</b><small>${on ? 'Open now · ' : ''}${layoutStats(l)}</small></div>` +
+        (on ? '' : `<button data-act="open">Open</button>`) +
+        `<button class="icon ghost" data-act="rename" title="Rename">${icon('pencil')}</button>` +
+        `<button class="icon ghost danger" data-act="delete" title="Delete this version"${layouts.length < 2 ? ' disabled' : ''}>${icon('trash')}</button></div>`;
+    }).join('');
+    const inp = box.querySelector('input');
+    if (inp) { inp.focus(); inp.select(); }
+    labelControls();
+  }
+  function switchLayout(id) {
+    const to = layouts.find(l => l.id === id);
+    if (!to || id === activeLayout) return;
+    const from = activeEntry();
+    if (from) from.data = { people: state.people, groups: state.groups, tables: state.tables };
+    activeLayout = id;
+    try { localStorage.setItem(ACTIVE_KEY, id); } catch {}
+    state = to.data ? JSON.parse(JSON.stringify(to.data)) : { people: [], groups: [], tables: [] };
+    groupFilter = null;
+    resetHistory();
+    render(); autosave();
+    if (mode === 'floor') fit();
+    flash(`Opened “${to.name}”`);
+  }
+  $('versionBtn').onclick = () => {
+    renamingLayout = null;
+    $('versionName').value = '';
+    renderVersions();
+    openModal('versionModal');
+  };
+  $('versionDone').onclick = closeModals;
+  $('versionList').addEventListener('click', e => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const id = b.closest('.vrow').dataset.id, l = layouts.find(x => x.id === id);
+    if (!l) return;
+    const act = b.dataset.act;
+    if (act === 'open') { switchLayout(id); renderVersions(); }
+    else if (act === 'rename') { renamingLayout = id; renderVersions(); }
+    else if (act === 'saveName') {
+      const v = b.closest('.vrow').querySelector('input').value.trim();
+      if (v) l.name = v.slice(0, 40);
+      renamingLayout = null;
+      renderVersions(); showVersion(); autosave();
+    } else if (act === 'delete') {
+      if (layouts.length < 2) return;
+      closeModals();
+      confirmBox(`Delete “${l.name}”?`, 'This version and its seating are removed for good, on every device. The other versions stay.', 'Delete', () => {
+        if (id === activeLayout) switchLayout(layouts.find(x => x.id !== id).id);
+        layouts = layouts.filter(x => x.id !== id);
+        showVersion(); autosave();
+        flash(`Deleted “${l.name}”`);
+      });
+    }
+  });
+  $('versionList').addEventListener('keydown', e => {
+    if (!e.target.matches('input')) return;
+    if (e.key === 'Enter') { e.preventDefault(); e.target.closest('.vrow').querySelector('[data-act=saveName]').click(); }
+    if (e.key === 'Escape') { e.stopPropagation(); renamingLayout = null; renderVersions(); }
+  });
+  $('versionAdd').onclick = () => {
+    const cur = activeEntry();
+    let name = $('versionName').value.trim().slice(0, 40);
+    if (!name) {
+      let n = layouts.length + 1;
+      while (layouts.some(l => l.name === `Layout ${n}`)) n++;
+      name = `Layout ${n}`;
+    }
+    const copy = { id: uid(), name, data: JSON.parse(JSON.stringify({ people: state.people, groups: state.groups, tables: state.tables })) };
+    layouts.splice(layouts.indexOf(cur) + 1, 0, copy);
+    $('versionName').value = '';
+    switchLayout(copy.id);
+    flash(`Made “${name}”, a copy of “${cur.name}”. You're on the copy now`);
+    renderVersions();
+  };
+  $('versionName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('versionAdd').click(); } });
+
+  // ---------- tabs ----------
+  let mode = 'floor';
+  const TAB_KEY = 'tableLayout.tab';
+  function setMode(m) {
+    mode = m === 'cards' ? 'cards' : 'floor';
+    document.body.classList.toggle('mode-cards', mode === 'cards');
+    document.body.classList.remove('sheet-open');
+    $('cardsView').hidden = mode !== 'cards';
+    $('tabFloor').classList.toggle('on', mode === 'floor');
+    $('tabCards').classList.toggle('on', mode === 'cards');
+    $('tabFloor').setAttribute('aria-selected', mode === 'floor');
+    $('tabCards').setAttribute('aria-selected', mode === 'cards');
+    $('print').title = mode === 'cards' ? 'Print the name cards (Ctrl+P)' : 'Print the floor plan and guest list (Ctrl+P)';
+    try { localStorage.setItem(TAB_KEY, mode); } catch {}
+    if (mode === 'cards') { loadCardFonts(); renderCards(); } else { pageStyle(); applyView(); }
+  }
+  $('tabFloor').onclick = () => setMode('floor');
+  $('tabCards').onclick = () => setMode('cards');
+
+  // ---------- name cards ----------
+  // Each card is one strip of four equal panels: base | front | back | flap. Folded on the three lines it
+  // becomes a triangular tent: the base lies on the table, the front and back lean together at the top, and
+  // the flap overlaps the base to be glued or stapled. Seen standing, the front panel is upside down on the
+  // strip, so its face is printed rotated 180°.
+  const CARDS_KEY = 'tableLayout.cards';
+  const SIZES = [
+    { id: 'large', name: 'Large', w: 4, h: 2.5 },
+    { id: 'wide', name: 'Wide', w: 5, h: 2 },
+    { id: 'standard', name: 'Standard', w: 3.5, h: 2 },
+    { id: 'small', name: 'Small', w: 4, h: 1.3 },
+    { id: 'mini', name: 'Mini', w: 2.6, h: 1.3 },
+    { id: 'custom', name: 'Custom size' },
+  ];
+  const FONTS = {
+    script: { face: '"Great Vibes", "Segoe Script", cursive', weight: 400, sub: '"Montserrat", "Segoe UI", sans-serif', scale: 1.12 },
+    garamond: { face: '"Cormorant Garamond", Garamond, Georgia, serif', weight: 600, sub: '"Cormorant Garamond", Garamond, Georgia, serif', scale: 1.05 },
+    playfair: { face: '"Playfair Display", Georgia, serif', weight: 500, sub: '"Montserrat", "Segoe UI", sans-serif', scale: .92 },
+    sans: { face: '"Montserrat", "Segoe UI", system-ui, sans-serif', weight: 500, sub: '"Montserrat", "Segoe UI", sans-serif', scale: .82 },
+  };
+  const CARD_DEFAULTS = {
+    who: 'seated', sort: 'table', blanks: 0, size: 'standard', w: 3.5, h: 2,
+    font: 'script', ink: '#3b3128', align: 'middle', showTable: true, bothSides: true,
+    imgMode: 'none', fit: 'cover', fade: 100, cutLines: true, foldLines: true,
+  };
+  const MARGIN = 0.25;          // inches kept clear around the sheet for the printer
+  let cards = { ...CARD_DEFAULTS };
+  try { Object.assign(cards, JSON.parse(localStorage.getItem(CARDS_KEY)) || {}); } catch {}
+  const saveCards = () => { try { localStorage.setItem(CARDS_KEY, JSON.stringify(cards)); } catch {} };
+  const cardImgs = { front: null, back: null };   // object URLs
+  const cardImgInfo = { front: '', back: '' };
+
+  function cardSize() {
+    const p = SIZES.find(s => s.id === cards.size);
+    if (p && p.w) return { w: p.w, h: p.h };
+    return { w: clamp(+cards.w || 3.5, 1, 8), h: clamp(+cards.h || 2, 0.75, 3) };
+  }
+  // The best way to fit w × 4h strips on a letter page: either page orientation, strips upright or turned
+  // sideways. Cards touch, so one cut separates two of them. Ties go to a portrait page.
+  function sheetLayout(w, h) {
+    let best = null;
+    for (const land of [false, true]) {
+      const pw = land ? 11 : 8.5, ph = land ? 8.5 : 11;
+      for (const rot of [false, true]) {
+        const sw = rot ? 4 * h : w, sh = rot ? w : 4 * h;
+        const cols = Math.floor((pw - 2 * MARGIN) / sw + 1e-6), rows = Math.floor((ph - 2 * MARGIN) / sh + 1e-6);
+        const n = cols * rows;
+        if (n && (!best || n > best.n)) best = { land, rot, pw, ph, sw, sh, cols, rows, n,
+          x0: (pw - cols * sw) / 2, y0: (ph - rows * sh) / 2 };
+      }
+    }
+    return best;
+  }
+  function cardList() {
+    const out = [];
+    if (cards.sort === 'table') {
+      const seen = new Set();
+      for (const t of sortedTables())
+        for (const pid of t.assign) {
+          const p = pid && personById(pid);
+          if (p) { out.push({ name: p.name, table: t.label }); seen.add(p.id); }
+        }
+      if (cards.who === 'all')
+        for (const p of [...state.people].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })))
+          if (!seen.has(p.id)) out.push({ name: p.name, table: '' });
+    } else {
+      const where = new Map();
+      for (const t of state.tables) for (const pid of t.assign) if (pid) where.set(pid, t.label);
+      for (const p of state.people)
+        if (cards.who === 'all' || where.has(p.id)) out.push({ name: p.name, table: where.get(p.id) || '' });
+      out.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    }
+    for (let i = 0; i < clamp(parseInt(cards.blanks) || 0, 0, 60); i++) out.push({ name: '', table: '' });
+    return out;
+  }
+
+  // Name size: as big as fits the panel. Very long names go onto two lines.
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  function textWidthIn(text, f, sizeIn) {
+    measureCtx.font = `${f.weight} ${sizeIn * 96}px ${f.face}`;
+    return measureCtx.measureText(text).width / 96;
+  }
+  function fitName(name, w, h) {
+    const f = FONTS[cards.font] || FONTS.script;
+    const availW = w - 0.42, sub = cards.showTable ? subSize(h) * 1.6 : 0;
+    const maxSize = Math.min(h * 0.34 * f.scale, (h - 0.22 - sub) * 0.8);
+    const one = Math.min(maxSize, maxSize * availW / Math.max(0.01, textWidthIn(name, f, maxSize)));
+    const words = name.trim().split(/\s+/);
+    if (one >= maxSize * 0.6 || words.length < 2) return { lines: [name], size: one };
+    // Split where the two lines come out closest in width
+    let bestSplit = 1, bestW = Infinity;
+    for (let i = 1; i < words.length; i++) {
+      const wmax = Math.max(textWidthIn(words.slice(0, i).join(' '), f, maxSize), textWidthIn(words.slice(i).join(' '), f, maxSize));
+      if (wmax < bestW) { bestW = wmax; bestSplit = i; }
+    }
+    const two = Math.min(maxSize * 0.8, (h - 0.22 - sub) / 2.35, maxSize * availW / bestW);
+    if (two <= one) return { lines: [name], size: one };
+    return { lines: [words.slice(0, bestSplit).join(' '), words.slice(bestSplit).join(' ')], size: two };
+  }
+  const subSize = h => clamp(h * 0.075, 0.085, 0.15);
+
+  // One side of a card, sized in inches. side: 'front' | 'back'
+  function faceHTML(card, side, w, h) {
+    let img = '';
+    const m = cards.imgMode, fit = cards.fit === 'contain' ? 'contain' : 'cover';
+    if (m === 'same' && cardImgs.front) img = `<img class="fimg" src="${cardImgs.front}" style="object-fit:${fit}" alt="">`;
+    else if (m === 'split' && cardImgs[side]) img = `<img class="fimg" src="${cardImgs[side]}" style="object-fit:${fit}" alt="">`;
+    else if (m === 'wrap' && cardImgs.front) img = `<img class="fimg wrap ${side}" src="${cardImgs.front}" style="object-fit:${fit}" alt="">`;
+    let text = '';
+    if (card.name && (side === 'front' || cards.bothSides)) {
+      const n = card.fit || (card.fit = fitName(card.name, w, h));
+      text = `<div class="ftext ${cards.align}"><div class="fname" style="font-size:${n.size.toFixed(3)}in">${n.lines.map(esc).join('<br>')}</div>` +
+        (cards.showTable && card.table ? `<div class="ftable" style="font-size:${subSize(h).toFixed(3)}in">${esc(card.table)}</div>` : '') + '</div>';
+    }
+    return `<div class="face">${img}${text}</div>`;
+  }
+  // A turned strip is laid out at its real sideways size, and only each panel's contents are rotated.
+  // (Rotating the whole strip would leave its unrotated box hanging off the page, and the printer would
+  // push that part onto the next page.)
+  function cardHTML(card, w, h, rot) {
+    const P = (c, inner) => `<div class="panel ${c}" style="width:${rot ? h : w}in;height:${rot ? w : h}in">` +
+      `<div class="pin" style="width:${w}in;height:${h}in${rot ? `;transform:translateY(${w}in) rotate(-90deg)` : ''}">${inner}</div></div>`;
+    return P('base', '') +
+      P('front', faceHTML(card, 'front', w, h)) +
+      P('back', faceHTML(card, 'back', w, h)) +
+      P('flap', '<span>Glue or staple this flap to the bottom panel</span>');
+  }
+  // Guides for one sheet, in inches: fold lines under the cards; cut lines and margin marks over them
+  function guidesSVG(L, count) {
+    const { w, h } = cardSize();
+    let under = '', over = '';
+    const cutX = new Set(), cutY = new Set(), foldX = new Set(), foldY = new Set();
+    const ln = (x1, y1, x2, y2) => `<line x1="${x1.toFixed(3)}" y1="${y1.toFixed(3)}" x2="${x2.toFixed(3)}" y2="${y2.toFixed(3)}"/>`;
+    for (let i = 0; i < count; i++) {
+      const x = L.x0 + (i % L.cols) * L.sw, y = L.y0 + Math.floor(i / L.cols) * L.sh;
+      over += `<rect x="${x.toFixed(3)}" y="${y.toFixed(3)}" width="${L.sw}" height="${L.sh}"/>`;
+      cutX.add(+x.toFixed(4)); cutX.add(+(x + L.sw).toFixed(4)); cutY.add(+y.toFixed(4)); cutY.add(+(y + L.sh).toFixed(4));
+      for (let k = 1; k < 4; k++) {
+        if (L.rot) { under += ln(x + k * h, y, x + k * h, y + w); foldX.add(+(x + k * h).toFixed(4)); }
+        else { under += ln(x, y + k * h, x + w, y + k * h); foldY.add(+(y + k * h).toFixed(4)); }
+      }
+    }
+    // Marks in the margin, so the lines can still be found when an image covers them
+    const g = 0.06, len = 0.16;
+    const top = Math.min(...cutY), bot = Math.max(...cutY), left = Math.min(...cutX), right = Math.max(...cutX);
+    let marks = '', ticks = '';
+    for (const x of cutX) marks += ln(x, top - g - len, x, top - g) + ln(x, bot + g, x, bot + g + len);
+    for (const y of cutY) marks += ln(left - g - len, y, left - g, y) + ln(right + g, y, right + g + len, y);
+    for (const x of foldX) ticks += ln(x, top - g - len, x, top - g) + ln(x, bot + g, x, bot + g + len);
+    for (const y of foldY) ticks += ln(left - g - len, y, left - g, y) + ln(right + g, y, right + g + len, y);
+    const vb = `viewBox="0 0 ${L.pw} ${L.ph}"`;
+    return {
+      under: cards.foldLines ? `<svg ${vb} aria-hidden="true"><g stroke="#9a9a9a" stroke-width=".01" stroke-dasharray=".06 .05">${under}</g></svg>` : '',
+      over: `<svg ${vb} aria-hidden="true">` +
+        (cards.cutLines ? `<g fill="none" stroke="#c4c4c4" stroke-width=".008">${over}</g><g stroke="#555" stroke-width=".01">${marks}</g>` : '') +
+        (cards.foldLines ? `<g stroke="#888" stroke-width=".01" stroke-dasharray=".04 .03">${ticks}</g>` : '') + '</svg>',
+    };
+  }
+  function pageStyle(L) {
+    $('pageStyle').textContent = mode === 'cards' && L ? `@page { size: letter ${L.land ? 'landscape' : 'portrait'}; margin: 0; }` : '';
+  }
+
+  function renderCards() {
+    const { w, h } = cardSize();
+    const L = sheetLayout(w, h);
+    const list = cardList();
+    const box = $('cardSheets');
+    const f = FONTS[cards.font] || FONTS.script;
+    const cv = $('cardsView');
+    cv.style.setProperty('--card-font', f.face);
+    cv.style.setProperty('--card-weight', f.weight);
+    cv.style.setProperty('--card-sub', f.sub);
+    cv.style.setProperty('--card-ink', cards.ink);
+    cv.style.setProperty('--fade', cards.fade / 100);
+    syncCardControls(L, list);
+    pageStyle(L);
+    if (!L) { box.innerHTML = '<div class="cards-empty"><b>That size doesn\'t fit</b>Four panels of this size don\'t fit on a letter page.</div>'; $('prismBox').innerHTML = ''; return; }
+    if (!list.length) {
+      box.innerHTML = `<div class="cards-empty"><b>No cards yet</b>${state.people.length
+        ? 'Nobody is seated in this layout. Seat your guests on the floor plan, choose “Everyone”, or add blank cards.'
+        : 'Import your guest list on the floor plan, or add blank cards to write on by hand.'}</div>`;
+      renderPrism({ name: 'Your Guest', table: 'Table 1' }, w, h);
+      return;
+    }
+    const sheets = Math.ceil(list.length / L.n);
+    let html = '';
+    for (let s = 0; s < sheets; s++) {
+      const part = list.slice(s * L.n, (s + 1) * L.n);
+      const gd = guidesSVG(L, part.length);
+      html += `<div class="sheet-wrap" style="--pw:${L.pw}in;--ph:${L.ph}in" data-label="Sheet ${s + 1} of ${sheets}"><div class="sheet">${gd.under}`;
+      part.forEach((c, i) => {
+        const x = L.x0 + (i % L.cols) * L.sw, y = L.y0 + Math.floor(i / L.cols) * L.sh;
+        html += `<div class="ncard${L.rot ? ' rot' : ''}" style="left:${x.toFixed(4)}in;top:${y.toFixed(4)}in;width:${L.sw}in;height:${L.sh}in">${cardHTML(c, w, h, L.rot)}</div>`;
+      });
+      html += gd.over + '</div></div>';
+    }
+    box.innerHTML = html;
+    scaleSheets();
+    renderPrism(list.find(c => c.name) || list[0], w, h);
+  }
+  function scaleSheets() {
+    const box = $('cardSheets'), first = box.querySelector('.sheet-wrap');
+    if (!first) return;
+    const L = sheetLayout(cardSize().w, cardSize().h), pw = L.pw * 96;
+    const avail = box.clientWidth;
+    const two = (avail - 24) / (2 * pw);
+    const k = box.children.length > 1 && two >= 0.42 ? Math.min(0.62, two) : Math.min(0.8, (avail - 4) / pw);
+    box.style.setProperty('--k', Math.max(0.2, k).toFixed(4));
+  }
+  new ResizeObserver(() => { if (mode === 'cards') scaleSheets(); }).observe($('cardSheets'));
+
+  // A spinning 3-D preview of the first card, folded
+  function renderPrism(card, w, h) {
+    const box = $('prismBox');
+    const s = Math.min(190 / (w * 96), 118 / (h * 96 * 0.866));
+    const W = w * 96, H = h * 96, tall = H * Math.sqrt(3) / 2;
+    const face = (side, tf) => `<div class="pf" style="width:${w}in;height:${h}in;transform:${tf}">${faceHTML(card, side, w, h)}</div>`;
+    box.innerHTML = `<div class="prism-scale" style="transform:translate(-50%,-50%) scale(${s.toFixed(4)});width:${W}px;height:${tall}px">` +
+      `<div class="prism" style="width:${W}px;height:${tall}px">` +
+      `<div class="pf shadow" style="width:${W * 1.2}px;height:${H * 1.3}px;left:${-W * 0.1}px;top:${tall - H * 0.65}px;transform:rotateX(90deg)"></div>` +
+      face('back', 'rotateY(180deg) rotateX(30deg)') + face('front', 'rotateX(30deg)') +
+      '</div></div>';
+  }
+
+  function syncCardControls(L, list) {
+    $('cWho').value = cards.who;
+    $('cSort').value = cards.sort;
+    if (document.activeElement !== $('cBlanks')) $('cBlanks').value = cards.blanks;
+    $('cSize').innerHTML = SIZES.map(s => {
+      const lay = s.w ? sheetLayout(s.w, s.h) : null;
+      return `<option value="${s.id}">${s.name}${s.w ? ` · ${s.w} × ${s.h} in · ${lay ? lay.n : 0} per sheet` : ''}</option>`;
+    }).join('');
+    $('cSize').value = cards.size;
+    $('cCustom').hidden = cards.size !== 'custom';
+    const { w, h } = cardSize();
+    if (document.activeElement !== $('cW')) $('cW').value = w;
+    if (document.activeElement !== $('cH')) $('cH').value = h;
+    $('cSizeHint').textContent = L
+      ? `Each card is a ${w} × ${+(4 * h).toFixed(2)} in strip and stands about ${(h * 0.866).toFixed(1)} in tall. ` +
+        `${L.n} fit on a ${L.land ? 'landscape' : 'portrait'} page${L.rot ? ', turned sideways' : ''}.`
+      : 'Too big for a letter page.';
+    $('cSizeHint').classList.toggle('warn', !L);
+    const named = list.filter(c => c.name).length, blanks = list.length - named;
+    const sheets = L ? Math.ceil(list.length / L.n) : 0;
+    $('cCount').textContent = `${named} name${named === 1 ? '' : 's'}` + (blanks ? ` + ${blanks} blank` : '') +
+      (sheets ? ` · ${sheets} sheet${sheets === 1 ? '' : 's'}` : '');
+    $('cPrint').querySelector('span').textContent = sheets ? `Print ${sheets} sheet${sheets === 1 ? '' : 's'}` : 'Print';
+    $('cPrint').disabled = !sheets;
+    $('cFont').value = cards.font;
+    $('cInk').value = cards.ink;
+    for (const [id, v] of [['cAlign', cards.align], ['cImgMode', cards.imgMode], ['cFit', cards.fit]])
+      for (const b of $(id).children) b.classList.toggle('on', b.dataset.v === v);
+    $('cShowTable').checked = cards.showTable;
+    $('cBoth').checked = cards.bothSides;
+    $('cFade').value = cards.fade;
+    $('cCut').checked = cards.cutLines;
+    $('cFold').checked = cards.foldLines;
+    const m = cards.imgMode;
+    $('pickFront').hidden = m === 'none';
+    $('pickBack').hidden = m !== 'split';
+    $('cFitRow').hidden = $('cFadeRow').hidden = m === 'none';
+    const label = { same: 'Image', split: 'Front image', wrap: 'Wrap-around image' }[m] || '';
+    for (const [id, which, lbl] of [['pickFront', 'front', label], ['pickBack', 'back', 'Back image']]) {
+      const el = $(id), url = cardImgs[which];
+      el.querySelector('.thumb').innerHTML = url ? `<img src="${url}" alt="">` : icon('image');
+      el.querySelector('.what').innerHTML = `${lbl}<small>${url ? esc(cardImgInfo[which] || 'Click the picture to change it') : 'Click or drop a picture here'}</small>`;
+      el.querySelector('button').hidden = !url;
+    }
+    $('cImgHint').textContent = {
+      none: '',
+      same: 'The same picture behind both sides.',
+      split: 'One picture behind the front, another behind the back.',
+      wrap: 'One picture runs up the front, over the top and down the back, so from the back it is upside down. Best for patterns, borders and textures.',
+    }[m] + (m !== 'none' ? ' Fill crops it to the panel; Whole image shows all of it.' : '');
+  }
+
+  // Controls
+  const setCard = (k, v) => { cards[k] = v; saveCards(); renderCards(); };
+  $('cWho').onchange = e => setCard('who', e.target.value);
+  $('cSort').onchange = e => setCard('sort', e.target.value);
+  $('cBlanks').oninput = e => setCard('blanks', clamp(parseInt(e.target.value) || 0, 0, 60));
+  $('cSize').onchange = e => {
+    if (e.target.value === 'custom') { const s = cardSize(); cards.w = s.w; cards.h = s.h; }
+    setCard('size', e.target.value);
+  };
+  $('cW').onchange = e => setCard('w', clamp(+e.target.value || 3.5, 1, 8));
+  $('cH').onchange = e => setCard('h', clamp(+e.target.value || 2, 0.75, 3));
+  $('cFont').onchange = e => { setCard('font', e.target.value); loadCardFonts(); };
+  $('cInk').oninput = e => setCard('ink', e.target.value);
+  $('cShowTable').onchange = e => setCard('showTable', e.target.checked);
+  $('cBoth').onchange = e => setCard('bothSides', e.target.checked);
+  $('cFade').oninput = e => setCard('fade', +e.target.value);
+  $('cCut').onchange = e => setCard('cutLines', e.target.checked);
+  $('cFold').onchange = e => setCard('foldLines', e.target.checked);
+  for (const [id, key] of [['cAlign', 'align'], ['cImgMode', 'imgMode'], ['cFit', 'fit']])
+    $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) setCard(key, b.dataset.v); });
+  $('cPrint').onclick = printCards;
+  function printCards() {
+    if (!$('cardSheets').querySelector('.sheet')) { flash('There are no cards to print'); return; }
+    loadCardFonts().then(() => setTimeout(() => window.print(), 50));
+  }
+
+  // Web fonts load only once the cards tab is opened (and the cards are redrawn when they arrive)
+  let fontsPromise = null;
+  function loadCardFonts() {
+    if (!fontsPromise) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@500;600&family=Playfair+Display:wght@500&family=Montserrat:wght@500;600&display=swap';
+      document.head.appendChild(link);
+      fontsPromise = new Promise(res => { link.onload = res; link.onerror = res; setTimeout(res, 4000); })
+        .then(() => Promise.all(['400 40px "Great Vibes"', '600 40px "Cormorant Garamond"', '500 40px "Playfair Display"', '500 40px Montserrat', '600 40px Montserrat']
+          .map(f => document.fonts.load(f).catch(() => {}))))
+        .then(() => { if (mode === 'cards') renderCards(); });
+    }
+    return fontsPromise;
+  }
+
+  // Images are kept on this device in IndexedDB (they are too big for localStorage or the online copy)
+  let dbp = null;
+  function imgDB() {
+    if (!dbp) dbp = new Promise((res, rej) => {
+      const r = indexedDB.open('tableLayout', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('images');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    return dbp;
+  }
+  async function idb(op, key, val) {
+    const db = await imgDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction('images', op === 'get' ? 'readonly' : 'readwrite'), st = tx.objectStore('images');
+      const r = op === 'get' ? st.get(key) : op === 'put' ? st.put(val, key) : st.delete(key);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  function setCardImg(which, blob, info) {
+    if (cardImgs[which]) URL.revokeObjectURL(cardImgs[which]);
+    cardImgs[which] = blob ? URL.createObjectURL(blob) : null;
+    cardImgInfo[which] = info || '';
+  }
+  const imgInfo = (blob, iw, ih) => `${iw} × ${ih} px · ${(blob.size / 1048576).toFixed(1)} MB`;
+  // Big photos are scaled down to 2400 px so the cards stay quick to draw and print
+  async function shrink(file) {
+    const bmp = await createImageBitmap(file);
+    const { width: iw, height: ih } = bmp;
+    if (file.size <= 2.5 * 1048576 && Math.max(iw, ih) <= 4000) { bmp.close?.(); return { blob: file, iw, ih }; }
+    const k = Math.min(1, 2400 / Math.max(iw, ih)), cw = Math.round(iw * k), ch = Math.round(ih * k);
+    const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+    c.getContext('2d').drawImage(bmp, 0, 0, cw, ch);
+    bmp.close?.();
+    const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    const blob = await new Promise(r => c.toBlob(r, type, 0.9));
+    return { blob, iw: cw, ih: ch };
+  }
+  async function takeImage(which, file) {
+    if (!file || !/^image\//.test(file.type)) { flash('That file is not a picture', { error: true }); return; }
+    try {
+      const { blob, iw, ih } = await shrink(file);
+      setCardImg(which, blob, imgInfo(blob, iw, ih));
+      try { await idb('put', which, { blob, iw, ih }); } catch { flash('The picture is used now but could not be kept for next time', { error: true }); }
+      if (cards.imgMode === 'none') cards.imgMode = 'same';
+      saveCards(); renderCards();
+    } catch {
+      flash('Could not read that picture', { error: true });
+    }
+  }
+  let picking = 'front';
+  for (const [id, which] of [['pickFront', 'front'], ['pickBack', 'back']]) {
+    const el = $(id);
+    el.querySelector('.thumb').onclick = () => { picking = which; $('cFile').click(); };
+    el.querySelector('.what').onclick = () => { picking = which; $('cFile').click(); };
+    el.querySelector('.what').style.cursor = 'pointer';
+    el.querySelector('button').onclick = async () => {
+      setCardImg(which, null);
+      try { await idb('delete', which); } catch {}
+      renderCards();
+    };
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drop-hover'); });
+    el.addEventListener('dragleave', () => el.classList.remove('drop-hover'));
+    el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drop-hover'); takeImage(which, e.dataTransfer.files[0]); });
+  }
+  $('cFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) takeImage(picking, f); });
+
+  async function initCards() {
+    for (const which of ['front', 'back']) {
+      try {
+        const v = await idb('get', which);
+        if (v && v.blob) setCardImg(which, v.blob, imgInfo(v.blob, v.iw, v.ih));
+      } catch {}
+    }
+    let tab = 'floor';
+    try { tab = localStorage.getItem(TAB_KEY) || 'floor'; } catch {}
+    if (tab === 'cards' || mode === 'cards') setMode('cards');
+  }
+
   // ---------- init ----------
   restore();
   resetHistory();
   render();
   initCloud();
+  initCards();
 })();
 </script>
 </body>

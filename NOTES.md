@@ -49,6 +49,34 @@ localStorage, so use **Save online** (or **Save**/**Open**) to move a layout bet
 | Undo and redo | The toolbar buttons, Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z), or **Undo** in the message that pops up |
 | Export | **CSV** (Table, Seat, Name, Group) or **Print** (floor plan plus guest list by table) |
 
+### Layout versions
+
+**Layout 1** (the button left of **Save online**) opens the list of versions. Type a name and press
+**Copy** to make a new version from the one you're on. Each version has its own tables, guests and
+groups. **Open** switches versions, the pencil renames and the trash deletes (it asks first). Undo
+history starts fresh when you switch.
+
+### Printing the seating chart
+
+**Print** asks whether to include the backyard photo. It is off by default, which gives white
+tables with dark outlines that use little ink. Your choice is remembered on this device.
+
+### Name cards
+
+The **Name cards** tab makes folding table cards. Each card is a strip of four panels:
+bottom · front · back · flap. Fold on the dashed lines into a triangle and glue or staple the flap
+under the bottom panel. The spinning preview shows the first card folded.
+
+- **Guests**: seated guests or everyone, sorted by table or name, plus any number of blank cards.
+- **Size of each side**: Large 4×2.5, Wide 5×2, Standard 3.5×2, Small 4×1.3, Mini 2.6×1.3, or
+  custom. The page turns cards sideways or the paper to landscape, whichever fits more per sheet.
+- **Text**: font, color, position, table name, name on one or both sides.
+- **Images**: none, the same on both sides, separate front & back, or one image that wraps over
+  the top fold. Fill or whole image, plus a strength slider to lighten it.
+- **Guides**: cut lines with crop marks, fold lines.
+
+Print at 100% ("Actual size"), not "Fit to page", or the cards come out the wrong size.
+
 ### On a phone or tablet
 
 The page works on touch screens. On a phone (narrower than 760px) the sidebar becomes a sheet. Open it with
@@ -130,6 +158,19 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   use the keyboard, and animations are turned off when the system asks for reduced motion.
 - **Desktop mouse only**, with no touch support, as you chose.
 
+- **Versions live inside the one layout.** The file and the online copy hold every version
+  (file format version 3; older files open as "Layout 1"). Which version you're on is remembered
+  per device, so two people can look at different versions. All versions share the online size
+  limit of 400 KB; if it's reached, the app says so and suggests deleting a version.
+- **Card settings and card images stay on this device** (images in the browser's IndexedDB), and are
+  not saved in the file or online. Large photos are shrunk to 2400 px when added.
+- **Wrap mode** puts one image across both sides, so on the back it reads upside down from the
+  other side, as it would on a real folded card. Use "Front & back" if you want both upright.
+- **The front panel prints upside down** on the strip, so it is upright once folded.
+- **Chrome print gotcha:** Chrome splits pages before CSS transforms, so a rotated strip kept its
+  unrotated height and spilled off the page. Sideways strips are laid out at their real size and
+  only each panel's contents are rotated.
+
 ## Tested in Chrome
 
 - Import:
@@ -162,6 +203,12 @@ The single-letter shortcuts are ignored while you're typing in a text field.
 - Views: wheel zoom, pan, Fit.
 - Keyboard: shortcuts, dialog focus and Tab trapping.
 - Autosave across reloads.
+
+- Layout versions: copy, clearing seats in one version without touching the other, switching
+  back, saved file holding both, per-device choice.
+- Printer-friendly print: PDF without the photo; the photo option in the dialog.
+- Name cards: 11 guests on 4 letter sheets, names fit their panels, fonts load in print, front
+  panel rotated, wrap image continuous over the fold, printed PDF shows every card whole.
 
 No console errors in any of these tests.
 - **Backyard photo and real scale.** The floor shows `backyard.jpg` (the drone photo, originally 500 px =
