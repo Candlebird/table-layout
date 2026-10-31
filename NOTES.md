@@ -84,6 +84,14 @@ under the bottom panel. The spinning preview shows the first card folded.
   vary in width, curl and twist, some catch the light along one half, and the stems taper toward
   their tips. The borders are drawn for the exact card size, so they never stretch or crop, and the
   name shrinks to stay clear of them. They can sit on top of a picture from Images.
+- **Variation**: **Original** draws each design exactly as designed. **Same** puts one shuffled
+  version on every card, and **Each card** gives every card its own (a guest keeps theirs when the
+  list changes). **Shuffle** picks a new one. A shuffle grows, shrinks, swings and bends the branches,
+  moves leaves along their stems, and moves, resizes, spins and recolors the flowers, sometimes
+  swapping a small rose for a blossom. Every amount is in the `VARIATION` table in `index.html`, and
+  setting a value to 0 turns that kind of change off. Shuffled branches stay inside the card's edge,
+  and a branch's tip only moves along its main direction: a sideways branch ends at its original
+  height and an upright one at its original x, so only its length changes where it ends.
 - **Images**: none, the same on both sides, separate front & back, or one image that wraps over
   the top fold. Fill or whole image, plus a strength slider to lighten it.
 - **Guides**: cut marks and fold marks, printed only in the paper margin so nothing shows on the

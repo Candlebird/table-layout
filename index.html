@@ -671,6 +671,7 @@
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-card" viewBox="0 0 24 24"><path d="M2 20h20"/><path d="m4 20 8-15 8 15"/><path d="M9.5 15h5"/></symbol>
   <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></symbol>
   <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
 </svg>
 
@@ -835,6 +836,8 @@
       <div class="sec-head"><span>Design</span></div>
       <div class="dgrid" id="cDesign"></div>
       <div class="cfield" id="cPalRow">Colors <div class="swatches" id="cPalette"></div></div>
+      <div class="cfield" id="cVaryRow">Variation <div class="cseg" id="cVary"><button data-v="none" title="Draw the design exactly as designed">Original</button><button data-v="same" title="One shuffled version on every card">Same</button><button data-v="each" title="A different shuffle on every card">Each card</button></div></div>
+      <button id="cShuffle" title="Shuffle leaves, flowers and branches"><svg class="i"><use href="#i-shuffle"/></svg>Shuffle</button>
       <div class="chint" id="cDesignHint"></div>
     </section>
     <section>
@@ -2892,6 +2895,7 @@
     who: 'seated', sort: 'table', blanks: 0, size: 'standard', w: 3.5, h: 2,
     font: 'script', ink: '#3b3128', align: 'middle', showTable: true, bothSides: true,
     imgMode: 'none', fit: 'cover', fade: 100, cutLines: true, foldLines: true, design: 'none', palette: 'moody',
+    vary: 'none', seed: 1,
   };
   const MARGIN = 0.25;          // inches kept clear around the sheet for the printer
   let cards = { ...CARD_DEFAULTS };
@@ -3036,7 +3040,10 @@
   }
   // A stem along the curve fn(t), t from 0 to 1, with leaves that alternate sides or come in pairs (laurel),
   // shrink toward the tip, and end in one leaf. kind 'eu' gives round eucalyptus leaves.
-  function sprigSVG(fn, n, len, P, { pairs = false, spread = 42, sw = .011, kind = 'leaf', shade = 0, accent = 0, start = .1 } = {}) {
+  // seed, jit and flip come from the shuffle (see VARIATION): seed reshuffles the leaves, jit adds that
+  // much extra wander to where each leaf sits on the stem, and flip starts the alternating leaves on the
+  // other side. All three are 0 for the original drawing.
+  function sprigSVG(fn, n, len, P, { pairs = false, spread = 42, sw = .011, kind = 'leaf', shade = 0, accent = 0, start = .1, seed: mix = 0, jit = 0, flip = 0 } = {}) {
     const pts = [];
     for (let i = 0; i <= 24; i++) pts.push(fn(i / 24));
     // The stem is one filled shape that narrows smoothly from the base to the tip
@@ -3049,7 +3056,7 @@
     let s = `<path d="M${L.join('L')}L${R.join('L')}Z" fill="${P.stem}"/><circle cx="${f3(pts[0][0])}" cy="${f3(pts[0][1])}" r="${f3(sw * .65)}" fill="${P.stem}"/>`;
     const ang = t => { const a = fn(Math.max(0, t - .01)), b = fn(Math.min(1, t + .01)); return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI; };
     // Variation is seeded from the sprig's position, so the same card always draws the same way
-    let seed = (Math.floor(Math.abs(pts[0][0] * 9973 + pts[0][1] * 7919 + pts[24][0] * 613 + n * 31 + shade * 7)) % 2147483646) + 1;
+    let seed = (Math.floor(Math.abs(pts[0][0] * 9973 + pts[0][1] * 7919 + pts[24][0] * 613 + n * 31 + shade * 7 + mix * 131)) % 2147483646) + 1;
     const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
     // Darker leaves near the base read as depth under the flowers; lighter ones and the odd frosted
     // leaf toward the tip. Never the frosted color right at the flowers.
@@ -3067,10 +3074,10 @@
     const m = Math.round(n * 1.25);
     for (let i = 0; i < m; i++) {
       const q = i / Math.max(1, m - 1);
-      const t = Math.min(.94, Math.max(start * .8, start + (.92 - start) * Math.pow(q, 1.3) + (rnd() - .5) * .04));
+      const t = Math.min(.94, Math.max(start * .8, start + (.92 - start) * Math.pow(q, 1.3) + (rnd() - .5) * (.04 + jit)));
       const [x, y] = fn(t), a = ang(t), l = len * (1.05 - .45 * t) * (.85 + .3 * rnd()), sp = spread + (rnd() - .5) * 16;
       if (pairs || kind === 'eu') { s += one(x, y, a - sp, l, t) + one(x, y, a + sp + (rnd() - .5) * 8, l * (.88 + .16 * rnd()), t); continue; }
-      s += one(x, y, a + (i % 2 ? sp : -sp), l, t);
+      s += one(x, y, a + ((i + flip) % 2 ? sp : -sp), l, t);
     }
     const [x, y] = fn(1);
     return s + one(x, y, ang(1) + (rnd() - .5) * 12, len * .5, 1);
@@ -3080,72 +3087,190 @@
     return [u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3];
   };
 
-  // Returns { svg, pad: [top, bottom, sides] } for one face of a w × h card
-  function designFor(id, w, h, P) {
-    const u = Math.min(h, w / 1.6), cx = w / 2;
+  // ---------- design variation ----------
+  // The shuffle nudges each design a little: branches grow, shrink, swing and bend, leaves shift along
+  // their stems, and the flowers move, resize, spin, trade colors or swap rose for blossom. Every amount
+  // lives here, so the look can be tuned in one place. Each number is the most a thing can change either
+  // way from the original drawing; set one to 0 to turn that kind of change off.
+  const VARIATION = {
+    branchLength: .15,    // fraction a branch can grow or shrink
+    branchTurn: 6,        // degrees a branch's middle can swing about its base (its tip stays on its line)
+    branchBend: .45,      // how much a branch's curve can deepen or flatten (fraction of its curve)
+    branchSag: .06,       // extra sideways bow, as a fraction of the branch's length (also bows straight ones)
+    laurelArc: 10,        // degrees the laurel's two arms can reach further round or stop short
+    leafCount: 1,         // leaves added to or taken from each branch
+    leafSize: .12,        // fraction the leaves on a branch can grow or shrink
+    leafSpread: 10,       // degrees the leaves on a branch can open out or close in
+    leafPosition: .06,    // extra wander of each leaf along its stem (fraction of the stem)
+    leafFlip: .5,         // chance a branch starts its alternating leaves on the other side
+    looseLeafAngle: 14,   // degrees a loose leaf beside the flowers can turn
+    looseLeafSize: .15,   // fraction a loose leaf can grow or shrink
+    flowerSize: .1,       // fraction the main flower can grow or shrink
+    sideFlowerSize: .18,  // fraction the smaller flowers and buds can grow or shrink
+    flowerShift: .3,      // how far a small flower can move, as a fraction of its radius (the main one half that)
+    flowerTurn: 180,      // degrees a rose or blossom can spin (they are seen from above, so any angle works)
+    budTurn: 15,          // degrees a bud can lean
+    swapFlowers: .3,      // chance a small rose becomes a blossom, or a blossom a rose
+    swapColors: .5,       // chance the two smaller flowers trade colors
+    mirror: .5,           // chance the frame's blossom and bud trade sides
+    berryLength: .2,      // fraction a berry cluster can grow or shrink
+    berryTurn: 20,        // degrees a berry cluster can swing
+    edge: .04,            // inches a shuffled branch is kept inside the card's edge
+  };
+
+  // A seeded source of variation. The same seed always gives the same drawing; seed 0 gives the
+  // original design exactly, because every helper then passes its values through untouched.
+  function variation(seed) {
+    const C = VARIATION, on = !!seed;
+    let s = seed >>> 0;
+    const rand = () => {   // mulberry32
+      s = s + 0x6D2B79F5 | 0;
+      let t = Math.imul(s ^ s >>> 15, 1 | s);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+    const pm = x => on && x ? (rand() * 2 - 1) * x : 0;   // anything from -x to x
+    const chance = p => on && p > 0 && rand() < p;
+    const scale = x => 1 + pm(x);
+    const V = { on, pm, chance, scale };
+    // A branch as a cubic curve from (x0, y0): longer or shorter, its middle swung and bent more or less.
+    // The base stays put, so it still grows out from under the flowers, and the tip only slides along the
+    // branch's main direction: a mostly sideways branch ends at its original height, a mostly upright one
+    // at its original x. Only the length changes where the branch ends, so the layout keeps its lines.
+    V.branch = (x0, y0, x1, y1, x2, y2, x3, y3) => {
+      if (!on) return bez(x0, y0, x1, y1, x2, y2, x3, y3);
+      const dx = x3 - x0, dy = y3 - y0, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+      const k = scale(C.branchLength), across = Math.abs(dx) >= Math.abs(dy);
+      // Keep points on the card (V.box is set by designFor), clear of the edge by C.edge
+      const cx = x => V.box ? clamp(x, C.edge, V.box[0] - C.edge) : x, cy = y => V.box ? clamp(y, C.edge, V.box[1] - C.edge) : y;
+      const ex = across ? cx(x0 + dx * k) : x3, ey = across ? y3 : cy(y0 + dy * k);
+      // Carry the curve along with its tip: the turn and stretch that take the old tip to the new one
+      const qd = L * L, ux = ex - x0, uy = ey - y0, qr = (ux * dx + uy * dy) / qd, qi = (uy * dx - ux * dy) / qd;
+      // ...then bend it, and swing the middle a little about the base
+      const bend = pm(C.branchBend), sag = pm(C.branchSag) * L, a = pm(C.branchTurn) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+      const move = (x, y) => {
+        const b = ((x - x0) * nx + (y - y0) * ny) * bend + sag;
+        const px = x - x0 + nx * b, py = y - y0 + ny * b;
+        const rx = px * qr - py * qi, ry = px * qi + py * qr;
+        return [cx(x0 + rx * ca - ry * sa), cy(y0 + rx * sa + ry * ca)];
+      };
+      const p1 = move(x1, y1), p2 = move(x2, y2);
+      return bez(x0, y0, p1[0], p1[1], p2[0], p2[1], ex, ey);
+    };
+    // A leafy branch along fn: a leaf more or fewer, leaves a little bigger or smaller, more open or closed
+    V.sprig = (fn, n, len, P, o = {}) => sprigSVG(fn, Math.max(2, n + Math.round(pm(C.leafCount))), len * scale(C.leafSize), P, on
+      ? { ...o, spread: (o.spread ?? 42) + pm(C.leafSpread), seed: seed % 99991, jit: C.leafPosition, flip: chance(C.leafFlip) ? 1 : 0 }
+      : o);
+    // A loose leaf tucked beside the flowers
+    V.leaf = (x, y, a, len, fill, vein, wf = 1, bend = 0, tw = 0) => on
+      ? leafSVG(x, y, a + pm(C.looseLeafAngle), len * scale(C.looseLeafSize), fill, vein, wf, bend + pm(.08), clamp(tw + pm(.3), -1, 1))
+      : leafSVG(x, y, a, len, fill, vein, wf, bend, tw);
+    // A rose or a blossom. main is the big focal flower: it moves less and never changes kind.
+    V.flower = (kind, x, y, r, rot, P, k, main = false) => {
+      if (!main && chance(C.swapFlowers)) kind = kind === 'rose' ? 'blossom' : 'rose';
+      const sh = C.flowerShift * r * (main ? .5 : 1);
+      x += pm(sh); y += pm(sh); r *= scale(main ? C.flowerSize : C.sideFlowerSize); rot += pm(C.flowerTurn);
+      return (kind === 'rose' ? roseSVG : blossomSVG)(x, y, r, rot, P, k);
+    };
+    V.bud = (x, y, r, P, k, a) => {
+      const sh = C.flowerShift * r;
+      return budSVG(x + pm(sh), y + pm(sh), r * scale(C.sideFlowerSize), P, k, a + pm(C.budTurn));
+    };
+    V.berries = (x, y, a, len, P) => berriesSVG(x, y, a + pm(C.berryTurn), len * scale(C.berryLength), P);
+    // The two smaller flowers' colors, maybe traded
+    V.colors = (a, b) => chance(C.swapColors) ? [b, a] : [a, b];
+    return V;
+  }
+
+  // Returns { svg, pad: [top, bottom, sides] } for one face of a w × h card. seed 0 draws the design
+  // as designed; any other seed draws a shuffled version of it (see VARIATION).
+  function designFor(id, w, h, P, seed = 0) {
+    const u = Math.min(h, w / 1.6), cx = w / 2, V = variation(seed);
+    V.box = [w, h];
     const wrap = (inner, pad) => ({ svg: `<svg class="fdesign" viewBox="0 0 ${w} ${h}" aria-hidden="true">${inner}</svg>`, pad });
-    const both = g => g + `<g transform="rotate(180 ${f3(cx)} ${f3(h / 2)})">${g}</g>`;
+    // The same corner twice, the second turned upside down. Each is drawn separately, so a shuffled
+    // card's two corners differ a little.
+    const both = g => g() + `<g transform="rotate(180 ${f3(cx)} ${f3(h / 2)})">${g()}</g>`;
     // Classic frame, and Grand frame: the same layout with larger flowers, a longer spray and a heavier rule
     if (id === 'frame' || id === 'frame2') {
       const big = id === 'frame2', r = .054 * u * (big ? 1.6 : 1), gap = .4 * u * (big ? 1.35 : 1), d = big ? .1 + r * .6 : .13;
       const st = P.leaf[0];
       const lines = `<path d="M${d} ${d}H${f3(cx - gap)}M${f3(cx + gap)} ${d}H${f3(w - d)}V${f3(h - d)}H${f3(cx + gap)}M${f3(cx - gap)} ${f3(h - d)}H${d}V${d}"/>`;
-      const fl = (y, s) => sprigSVG(bez(cx - s * r * .8, y, cx - s * gap * .45, y - .035 * u, cx - s * gap * .8, y + .025 * u, cx - s * gap * 1.08, y), big ? 5 : 4, .085 * u * (big ? 1.45 : 1), P, { sw: big ? .014 : .011, spread: 50, accent: 3, shade: s > 0 ? 0 : 1 });
-      const mid = y => fl(y, 1) + fl(y, -1) + leafSVG(cx - r * .5, y, 197, r * 2, P.leaf[0], P.leaf[1], .72, .12, .4) + leafSVG(cx + r * .5, y, -17, r * 2, P.leaf[1], P.leaf[0], .72, -.12, -.4) +
-        blossomSVG(cx - r * 1.5, y + r * .15, r * .62, 20, P, 1) + budSVG(cx + r * 1.5, y - r * .1, r * .36, P, 2, 70) + roseSVG(cx, y, r, 0, P, 0);
+      const fl = (y, s) => V.sprig(V.branch(cx - s * r * .8, y, cx - s * gap * .45, y - .035 * u, cx - s * gap * .8, y + .025 * u, cx - s * gap * 1.08, y), big ? 5 : 4, .085 * u * (big ? 1.45 : 1), P, { sw: big ? .014 : .011, spread: 50, accent: 3, shade: s > 0 ? 0 : 1 });
+      const mid = y => {
+        const m = V.chance(VARIATION.mirror) ? -1 : 1, [k1, k2] = V.colors(1, 2);
+        return fl(y, 1) + fl(y, -1) + V.leaf(cx - r * .5, y, 197, r * 2, P.leaf[0], P.leaf[1], .72, .12, .4) + V.leaf(cx + r * .5, y, -17, r * 2, P.leaf[1], P.leaf[0], .72, -.12, -.4) +
+          V.flower('blossom', cx - m * r * 1.5, y + r * .15, r * .62, 20, P, k1) + V.bud(cx + m * r * 1.5, y - r * .1, r * .36, P, k2, m * 70) + V.flower('rose', cx, y, r, 0, P, 0, true);
+      };
       return wrap(`<g fill="none" stroke="${st}" stroke-width="${big ? .016 : .011}">${lines}</g>` +
         `<rect x="${d + .045}" y="${d + .045}" width="${f3(w - 2 * d - .09)}" height="${f3(h - 2 * d - .09)}" fill="none" stroke="${st}" stroke-width="${big ? .007 : .005}" opacity=".7"/>` +
         mid(d) + mid(h - d), big ? [d + r * 1.1 - .07, d + r * 1.1 - .07, .2] : [.2 + .04 * u, .2 + .04 * u, .17]);
     }
     if (id === 'vines') {
       const c = .13, along = Math.min(w * .42, .8 * u), down = Math.min(h * .5, .55 * u);
-      const g = sprigSVG(bez(c + .02, c + .01, c + along * .35, c + .02, c + along * .7, c + .08, c + along, c + .04), 8, .105 * u, P, { accent: 4 }) +
-        sprigSVG(bez(c + .02, c + .02, c + along * .25, c + .1 * u, c + along * .45, c + .06 * u, c + along * .55, c + .12 * u), 4, .08 * u, P, { kind: 'eu', shade: 1 }) +
-        sprigSVG(bez(c, c + .02, c - .04, c + down * .35, c + .06, c + down * .7, c + .02, c + down), 6, .11 * u, P, { shade: 1, accent: 5 }) +
-        berriesSVG(c + .075 * u, c + .075 * u, 50, .085 * u, P) +
-        roseSVG(c + .045 * u, c + .045 * u, .072 * u, 10, P, 0) + blossomSVG(c + .17 * u, c + .045 * u, .048 * u, 30, P, 1);
+      const g = () => V.sprig(V.branch(c + .02, c + .01, c + along * .35, c + .02, c + along * .7, c + .08, c + along, c + .04), 8, .105 * u, P, { accent: 4 }) +
+        V.sprig(V.branch(c + .02, c + .02, c + along * .25, c + .1 * u, c + along * .45, c + .06 * u, c + along * .55, c + .12 * u), 4, .08 * u, P, { kind: 'eu', shade: 1 }) +
+        V.sprig(V.branch(c, c + .02, c - .04, c + down * .35, c + .06, c + down * .7, c + .02, c + down), 6, .11 * u, P, { shade: 1, accent: 5 }) +
+        V.berries(c + .075 * u, c + .075 * u, 50, .085 * u, P) +
+        V.flower('rose', c + .045 * u, c + .045 * u, .072 * u, 10, P, 0, true) + V.flower('blossom', c + .17 * u, c + .045 * u, .048 * u, 30, P, 1);
       return wrap(both(g), [.17 * u, .17 * u, .12]);
     }
     if (id === 'floral') {
-      const k = u, g =
-        sprigSVG(bez(.2 * k, .1 * k, .4 * k, .02 * k, .62 * k, .1 * k, Math.min(w * .45, .9 * k), .05 * k), 6, .1 * k, P, { accent: 3 }) +
-        sprigSVG(bez(.1 * k, .2 * k, .02 * k, .38 * k, .1 * k, .5 * k, .05 * k, Math.min(h * .55, .7 * k)), 5, .09 * k, P, { shade: 1 }) +
-        sprigSVG(bez(.15 * k, .15 * k, .3 * k, .2 * k, .38 * k, .24 * k, .45 * k, .3 * k), 4, .07 * k, P, { kind: 'eu' }) +
-        leafSVG(.13 * k, .13 * k, 32, .2 * k, P.leaf[0], P.leaf[1], .68, .14, .5) + leafSVG(.13 * k, .13 * k, 60, .18 * k, P.leaf[1], P.leaf[0], .6, -.16, -.4) +
-        leafSVG(.11 * k, .11 * k, -8, .16 * k, P.leaf[0], P.leaf[1], .62, -.15, .3) + leafSVG(.11 * k, .11 * k, 98, .15 * k, P.leaf[0], P.leaf[1], .62, .15, -.3) +
-        berriesSVG(.3 * k, .1 * k, -20, .15 * k, P) + berriesSVG(.1 * k, .3 * k, 105, .13 * k, P) +
-        roseSVG(.15 * k, .13 * k, .12 * k, 8, P, 0) + blossomSVG(.36 * k, .08 * k, .075 * k, 30, P, 1) + roseSVG(.07 * k, .34 * k, .065 * k, 50, P, 2);
+      const k = u, g = () => {
+        const [k1, k2] = V.colors(1, 2);
+        return V.sprig(V.branch(.2 * k, .1 * k, .4 * k, .02 * k, .62 * k, .1 * k, Math.min(w * .45, .9 * k), .05 * k), 6, .1 * k, P, { accent: 3 }) +
+          V.sprig(V.branch(.1 * k, .2 * k, .02 * k, .38 * k, .1 * k, .5 * k, .05 * k, Math.min(h * .55, .7 * k)), 5, .09 * k, P, { shade: 1 }) +
+          V.sprig(V.branch(.15 * k, .15 * k, .3 * k, .2 * k, .38 * k, .24 * k, .45 * k, .3 * k), 4, .07 * k, P, { kind: 'eu' }) +
+          V.leaf(.13 * k, .13 * k, 32, .2 * k, P.leaf[0], P.leaf[1], .68, .14, .5) + V.leaf(.13 * k, .13 * k, 60, .18 * k, P.leaf[1], P.leaf[0], .6, -.16, -.4) +
+          V.leaf(.11 * k, .11 * k, -8, .16 * k, P.leaf[0], P.leaf[1], .62, -.15, .3) + V.leaf(.11 * k, .11 * k, 98, .15 * k, P.leaf[0], P.leaf[1], .62, .15, -.3) +
+          V.berries(.3 * k, .1 * k, -20, .15 * k, P) + V.berries(.1 * k, .3 * k, 105, .13 * k, P) +
+          V.flower('rose', .15 * k, .13 * k, .12 * k, 8, P, 0, true) + V.flower('blossom', .36 * k, .08 * k, .075 * k, 30, P, k1) + V.flower('rose', .07 * k, .34 * k, .065 * k, 50, P, k2);
+      };
       return wrap(both(g), [.2 * u, .2 * u, .14 + .06 * u]);
     }
     if (id === 'garland') {
       const e = Math.min(w * .44, 1.05 * u), y0 = .12 * u;
-      const half = s => sprigSVG(bez(cx + s * .06 * u, y0 + .02 * u, cx + s * e * .35, y0 + .12 * u, cx + s * e * .7, y0 + .06 * u, cx + s * e, y0 - .04 * u), 8, .11 * u, P, { shade: s > 0 ? 1 : 0, accent: 4 }) +
-        sprigSVG(bez(cx + s * .08 * u, y0, cx + s * e * .25, y0 + .02 * u, cx + s * e * .45, y0 + .1 * u, cx + s * e * .6, y0 + .05 * u), 3, .09 * u, P, { kind: 'eu', start: .35 }) +
-        berriesSVG(cx + s * .3 * u, y0 + .06 * u, s > 0 ? 35 : 145, .09 * u, P);
+      const half = s => V.sprig(V.branch(cx + s * .06 * u, y0 + .02 * u, cx + s * e * .35, y0 + .12 * u, cx + s * e * .7, y0 + .06 * u, cx + s * e, y0 - .04 * u), 8, .11 * u, P, { shade: s > 0 ? 1 : 0, accent: 4 }) +
+        V.sprig(V.branch(cx + s * .08 * u, y0, cx + s * e * .25, y0 + .02 * u, cx + s * e * .45, y0 + .1 * u, cx + s * e * .6, y0 + .05 * u), 3, .09 * u, P, { kind: 'eu', start: .35 }) +
+        V.berries(cx + s * .3 * u, y0 + .06 * u, s > 0 ? 35 : 145, .09 * u, P);
+      const [k1, k2] = V.colors(1, 2);
       return wrap(half(-1) + half(1) +
-        leafSVG(cx, y0, 200, .17 * u, P.leaf[0], P.leaf[1]) + leafSVG(cx, y0, -20, .17 * u, P.leaf[0], P.leaf[1]) +
-        blossomSVG(cx - .14 * u, y0 + .02 * u, .065 * u, 20, P, 1) + roseSVG(cx + .14 * u, y0 + .02 * u, .065 * u, 50, P, 2) + roseSVG(cx, y0 + .01 * u, .095 * u, 0, P, 0) +
-        budSVG(cx - .225 * u, y0 + .045 * u, .022 * u, P, 2, -105) + budSVG(cx + .225 * u, y0 + .045 * u, .022 * u, P, 0, 105),
+        V.leaf(cx, y0, 200, .17 * u, P.leaf[0], P.leaf[1]) + V.leaf(cx, y0, -20, .17 * u, P.leaf[0], P.leaf[1]) +
+        V.flower('blossom', cx - .14 * u, y0 + .02 * u, .065 * u, 20, P, k1) + V.flower('rose', cx + .14 * u, y0 + .02 * u, .065 * u, 50, P, k2) + V.flower('rose', cx, y0 + .01 * u, .095 * u, 0, P, 0, true) +
+        V.bud(cx - .225 * u, y0 + .045 * u, .022 * u, P, 2, -105) + V.bud(cx + .225 * u, y0 + .045 * u, .022 * u, P, 0, 105),
         [.3 * u, .08, .14]);
     }
     if (id === 'laurel') {
-      const rx = Math.min(w * .45, h * 1.05), ry = h * .4, cy = h * .5;
+      const rx = Math.min(w * .45, h * 1.05), ry = h * .4, cy = h * .5, reach = () => V.pm(VARIATION.laurelArc);
       const arc = (a0, a1) => t => { const a = (a0 + (a1 - a0) * t) * Math.PI / 180; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; };
-      return wrap(sprigSVG(arc(98, 212), 9, .12 * u, P, { pairs: true, spread: 32, accent: 5 }) + sprigSVG(arc(82, -32), 9, .12 * u, P, { pairs: true, spread: 32, accent: 5 }) +
-        berriesSVG(cx - .04 * u, cy + ry, 200, .1 * u, P) + berriesSVG(cx + .04 * u, cy + ry, -20, .1 * u, P) +
-        blossomSVG(cx - .085 * u, cy + ry - .005, .042 * u, 15, P, 1) + budSVG(cx + .09 * u, cy + ry - .015 * u, .022 * u, P, 2, 75) + roseSVG(cx, cy + ry, .06 * u, 0, P, 0),
+      const [k1, k2] = V.colors(1, 2);
+      return wrap(V.sprig(arc(98, 212 + reach()), 9, .12 * u, P, { pairs: true, spread: 32, accent: 5 }) + V.sprig(arc(82, -32 - reach()), 9, .12 * u, P, { pairs: true, spread: 32, accent: 5 }) +
+        V.berries(cx - .04 * u, cy + ry, 200, .1 * u, P) + V.berries(cx + .04 * u, cy + ry, -20, .1 * u, P) +
+        V.flower('blossom', cx - .085 * u, cy + ry - .005, .042 * u, 15, P, k1) + V.bud(cx + .09 * u, cy + ry - .015 * u, .022 * u, P, k2, 75) + V.flower('rose', cx, cy + ry, .06 * u, 0, P, 0, true),
         [.1, .16 * u, Math.max(.14, w / 2 - rx * .82)]);
     }
     return { svg: '', pad: [0, 0, 0] };
   }
-  let designCache = null;
-  function cardDesign(w, h) {
-    const key = [cards.design, cards.palette, w, h].join('|');
-    if (!designCache || designCache.key !== key) {
+  // The seed one card is drawn with: 0 (as designed), the shared shuffle, or the shared shuffle mixed
+  // with the guest's name, so each card differs but the same guest always gets the same card.
+  function cardSeed(card) {
+    if (cards.vary === 'none') return 0;
+    const base = (+cards.seed >>> 0) || 1;
+    if (cards.vary !== 'each' || !card) return base;
+    let x = base;
+    for (const ch of (card.key || card.name || '') + '|' + (card.table || '')) x = Math.imul(x ^ ch.charCodeAt(0), 2654435761) >>> 0;
+    return (x >>> 0) || 1;
+  }
+  const designCache = new Map();
+  function cardDesign(w, h, card) {
+    const seed = cardSeed(card), key = [cards.design, cards.palette, w, h, seed].join('|');
+    let D = designCache.get(key);
+    if (!D) {
+      if (designCache.size > 400) designCache.clear();
       const P = PALETTES.find(p => p.id === cards.palette) || PALETTES[0];
-      designCache = { key, ...designFor(cards.design, w, h, P) };
+      designCache.set(key, D = designFor(cards.design, w, h, P, seed));
     }
-    return designCache;
+    return D;
   }
 
   function cardSize() {
@@ -3188,7 +3313,7 @@
         if (cards.who === 'all' || where.has(p.id)) out.push({ name: p.name, table: where.get(p.id) || '' });
       out.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
     }
-    for (let i = 0; i < clamp(parseInt(cards.blanks) || 0, 0, 60); i++) out.push({ name: '', table: '' });
+    for (let i = 0; i < clamp(parseInt(cards.blanks) || 0, 0, 60); i++) out.push({ name: '', table: '', key: 'blank ' + i });
     return out;
   }
 
@@ -3224,7 +3349,7 @@
     if (m === 'same' && cardImgs.front) img = `<img class="fimg" src="${cardImgs.front}" style="object-fit:${fit}" alt="">`;
     else if (m === 'split' && cardImgs[side]) img = `<img class="fimg" src="${cardImgs[side]}" style="object-fit:${fit}" alt="">`;
     else if (m === 'wrap' && cardImgs.front) img = `<img class="fimg wrap ${side}" src="${cardImgs.front}" style="object-fit:${fit}" alt="">`;
-    const D = cardDesign(w, h), [pt, pb, ps] = D.pad;
+    const D = cardDesign(w, h, card), [pt, pb, ps] = D.pad;
     let text = '';
     if (card.name && (side === 'front' || cards.bothSides)) {
       const n = card.fit || (card.fit = fitName(card.name, w - 2 * ps, h - pt - pb));
@@ -3371,18 +3496,21 @@
     $('cBoth').checked = cards.bothSides;
     $('cFade').value = cards.fade;
     const pal = PALETTES.find(p => p.id === cards.palette) || PALETTES[0];
-    if (!$('cDesign').children.length || $('cDesign').dataset.pal !== pal.id) {
-      $('cDesign').dataset.pal = pal.id;
+    const thumbKey = pal.id + '|' + cardSeed(null);
+    if (!$('cDesign').children.length || $('cDesign').dataset.key !== thumbKey) {
+      $('cDesign').dataset.key = thumbKey;
       $('cDesign').innerHTML = DESIGNS.map(d => `<button data-v="${d.id}" title="${d.name}">` +
-        `<svg class="thumb" viewBox="0 0 3.5 2">${designFor(d.id, 3.5, 2, pal).svg}</svg><span>${d.name}</span></button>`).join('');
+        `<svg class="thumb" viewBox="0 0 3.5 2">${designFor(d.id, 3.5, 2, pal, cardSeed(null)).svg}</svg><span>${d.name}</span></button>`).join('');
       $('cPalette').innerHTML = PALETTES.map(q => `<button data-v="${q.id}" title="${q.name}">` +
         `<span style="background:conic-gradient(${q.leaf[0]} 0 120deg, ${q.blooms[0][0]} 0 240deg, ${q.blooms[1][0]} 0)"></span></button>`).join('');
     }
     for (const id of ['cDesign', 'cPalette']) for (const b of $(id).children) b.classList.toggle('on', b.dataset.v === cards[id === 'cDesign' ? 'design' : 'palette']);
-    $('cPalRow').hidden = cards.design === 'none';
+    $('cPalRow').hidden = $('cVaryRow').hidden = $('cShuffle').hidden = cards.design === 'none';
+    for (const b of $('cVary').children) b.classList.toggle('on', b.dataset.v === cards.vary);
     $('cDesignHint').textContent = cards.design === 'none'
       ? 'Add a printed border. The designs are drawn to fit each card size and print sharp.'
-      : `${pal.name}. The name moves and shrinks so it stays clear of the design. You can add a picture under it in Images.`;
+      : `${pal.name}. ${{ none: 'Drawn exactly as designed.', same: 'One shuffled version on every card.', each: 'Every card gets its own shuffle, and a guest keeps theirs.' }[cards.vary] || ''} ` +
+        'The name moves and shrinks so it stays clear of the design. You can add a picture under it in Images.';
     $('cCut').checked = cards.cutLines;
     $('cFold').checked = cards.foldLines;
     const m = cards.imgMode;
@@ -3424,6 +3552,12 @@
   for (const [id, key] of [['cDesign', 'design'], ['cPalette', 'palette']])
     $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) setCard(key, b.dataset.v); });
   $('cFold').onchange = e => setCard('foldLines', e.target.checked);
+  $('cVary').addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) setCard('vary', b.dataset.v); });
+  // A new shuffle. From "Original" it switches to a shuffle on every card, since that's what it shows.
+  $('cShuffle').onclick = () => {
+    if (cards.vary === 'none') cards.vary = 'each';
+    setCard('seed', 1 + Math.floor(Math.random() * 2147483646));
+  };
   for (const [id, key] of [['cAlign', 'align'], ['cImgMode', 'imgMode'], ['cFit', 'fit']])
     $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) setCard(key, b.dataset.v); });
   $('cPrint').onclick = printCards;
