@@ -3020,10 +3020,11 @@
   }
   // A closed rosebud seen from the side: a teardrop of petals with one wrapped petal edge, held by two
   // green sepals on a short stalk. (x, y) is its middle; a turns it (0 points up).
-  function budSVG(x, y, r, P, k = 0, a = 0) {
+  // stalk is how far the stalk reaches below the bud's base, in units of R (1.25 r).
+  function budSVG(x, y, r, P, k = 0, a = 0, stalk = .9) {
     const [fill, edge] = P.blooms[k % 3], R = r * 1.25, sw = f3(Math.max(.004, R * .07));
     return `<g ${tr(x, y, a)}><g transform="translate(0 ${f3(R)})">` +
-      `<path d="M0 ${f3(R * .2)}L0 ${f3(R * .9)}" stroke="${P.stem}" stroke-width="${f3(Math.max(.005, R * .12))}" stroke-linecap="round"/>` +
+      `<path d="M0 ${f3(R * .2)}L0 ${f3(R * stalk)}" stroke="${P.stem}" stroke-width="${f3(Math.max(.005, R * .12))}" stroke-linecap="round"/>` +
       `<path d="M0 0C${f3(-R * .95)} ${f3(-R * .25)} ${f3(-R * .7)} ${f3(-R * 1.55)} 0 ${f3(-R * 2)}C${f3(R * .7)} ${f3(-R * 1.55)} ${f3(R * .95)} ${f3(-R * .25)} 0 0Z" fill="${fill}" stroke="${edge}" stroke-width="${sw}"/>` +
       `<path d="M${f3(-R * .55)} ${f3(-R * .45)}Q${f3(-R * .05)} ${f3(-R * 1.2)} ${f3(R * .3)} ${f3(-R * 1.78)}" fill="none" stroke="${edge}" stroke-width="${sw}" stroke-linecap="round"/>` +
       leafSVG(0, R * .15, -122, R * .8, P.leaf[0], '', .5, .2) + leafSVG(0, R * .15, -58, R * .75, P.leaf[0], '', .5, -.2) + leafSVG(0, R * .15, -95, R * .55, P.leaf[1], '', .45, .1) + '</g></g>';
@@ -3043,14 +3044,15 @@
   // seed, jit and flip come from the shuffle (see VARIATION): seed reshuffles the leaves, jit adds that
   // much extra wander to where each leaf sits on the stem, and flip starts the alternating leaves on the
   // other side. All three are 0 for the original drawing.
-  function sprigSVG(fn, n, len, P, { pairs = false, spread = 42, sw = .011, kind = 'leaf', shade = 0, accent = 0, start = .1, seed: mix = 0, jit = 0, flip = 0 } = {}) {
+  // swell = [amount, phase] makes the stem swell and narrow a little along its length.
+  function sprigSVG(fn, n, len, P, { pairs = false, spread = 42, sw = .011, kind = 'leaf', shade = 0, accent = 0, start = .1, seed: mix = 0, jit = 0, flip = 0, swell = null } = {}) {
     const pts = [];
     for (let i = 0; i <= 24; i++) pts.push(fn(i / 24));
     // The stem is one filled shape that narrows smoothly from the base to the tip
     const L = [], R = [];
     pts.forEach((p, i) => {
       const q = pts[Math.min(24, i + 1)], o = pts[Math.max(0, i - 1)], dx = q[0] - o[0], dy = q[1] - o[1], d = Math.hypot(dx, dy) || 1;
-      const hw = sw * (1.3 - .85 * i / 24) / 2, nx = -dy / d * hw, ny = dx / d * hw;
+      const hw = sw * (1.3 - .85 * i / 24) / 2 * (swell ? 1 + swell[0] * Math.sin(i / 24 * 9 + swell[1]) : 1), nx = -dy / d * hw, ny = dx / d * hw;
       L.push(`${f3(p[0] + nx)} ${f3(p[1] + ny)}`); R.unshift(`${f3(p[0] - nx)} ${f3(p[1] - ny)}`);
     });
     let s = `<path d="M${L.join('L')}L${R.join('L')}Z" fill="${P.stem}"/><circle cx="${f3(pts[0][0])}" cy="${f3(pts[0][1])}" r="${f3(sw * .65)}" fill="${P.stem}"/>`;
@@ -3103,6 +3105,22 @@
     leafSpread: 10,       // degrees the leaves on a branch can open out or close in
     leafPosition: .06,    // extra wander of each leaf along its stem (fraction of the stem)
     leafFlip: .5,         // chance a branch starts its alternating leaves on the other side
+    branchWidth: .2,      // fraction a branch's stem can be thicker or thinner
+    branchSwell: .12,     // gentle swelling and narrowing along a stem (fraction of its width)
+    twigChance: .45,      // chance a branch grows a leafy side shoot
+    twigSecond: .25,      // chance a branch with a side shoot grows a second one
+    twigLength: .32,      // a side shoot's length, as a fraction of its branch
+    twigAngle: 20,        // degrees a side shoot leans out from its branch (it settles back nearly parallel)
+    twigVary: .25,        // fraction a side shoot's length and lean can change
+    twigReach: 1.1,       // farthest a side shoot's tip strays from its branch, in leaf lengths
+    twigLeaves: .5,       // a side shoot's leaves, as a fraction of its branch's (at least 2)
+    twigWidth: .65,       // a side shoot's stem width, as a fraction of its branch's
+    // Where along its branch a side shoot starts: each band is [from, to, share], as fractions of the
+    // branch, and the shares give how often a shoot lands in that band. Mostly in the first quarter
+    // (clear of the base under the flowers), less often up to halfway, rarely beyond, never past 3/4.
+    twigZones: [[.1, .25, .65], [.25, .5, .3], [.5, .7, .05]],
+    stemFlower: .08,      // chance a branch or side shoot carries a little flower or bud along it
+    stemFlowerSize: .5,   // that flower's size, as a fraction of the branch's leaf length
     looseLeafAngle: 14,   // degrees a loose leaf beside the flowers can turn
     looseLeafSize: .15,   // fraction a loose leaf can grow or shrink
     flowerSize: .1,       // fraction the main flower can grow or shrink
@@ -3157,10 +3175,99 @@
       const p1 = move(x1, y1), p2 = move(x2, y2);
       return bez(x0, y0, p1[0], p1[1], p2[0], p2[1], ex, ey);
     };
-    // A leafy branch along fn: a leaf more or fewer, leaves a little bigger or smaller, more open or closed
-    V.sprig = (fn, n, len, P, o = {}) => sprigSVG(fn, Math.max(2, n + Math.round(pm(C.leafCount))), len * scale(C.leafSize), P, on
-      ? { ...o, spread: (o.spread ?? 42) + pm(C.leafSpread), seed: seed % 99991, jit: C.leafPosition, flip: chance(C.leafFlip) ? 1 : 0 }
-      : o);
+    // A leafy branch along fn: a leaf more or fewer, leaves a little bigger or smaller, more open or
+    // closed, a stem a little thicker or thinner, sometimes a leafy side shoot or two, and now and then a
+    // little flower or bud along it
+    const keep = ([x, y]) => V.box ? [clamp(x, C.edge, V.box[0] - C.edge), clamp(y, C.edge, V.box[1] - C.edge)] : [x, y];
+    const margin = ([x, y]) => V.box ? Math.min(x, y, V.box[0] - x, V.box[1] - y) : 1;
+    const dir = (fn, t) => { const a = fn(Math.max(0, t - .01)), b = fn(Math.min(1, t + .01)); return Math.atan2(b[1] - a[1], b[0] - a[0]); };
+    const stemFlower = (fn, len, P) => {
+      if (!chance(C.stemFlower)) return '';
+      // Out along the branch, clear of the main flowers at its base and of the single leaf at its tip
+      const t = .5 + rand() * .38, [x, y] = fn(t), r = len * C.stemFlowerSize * scale(C.sideFlowerSize), k = Math.floor(rand() * 3);
+      // Kept small, so it reads as one more bloom on the vine rather than another of the main flowers
+      if (rand() < .5) return blossomSVG(x, y, r * .55, rand() * 360, P, k);
+      // A bud leans off the stem to one side, pointing forward (a bud's angle 0 points up)
+      // budSVG is placed by its middle, its base R below that (R = 1.25 r). The bud's axis is u.
+      const rb = r * .55, R = rb * 1.25, a = dir(fn, t) * 180 / Math.PI + 90 + (rand() < .5 ? -1 : 1) * (28 + pm(10));
+      const ar = a * Math.PI / 180, ux = Math.sin(ar), uy = -Math.cos(ar);
+      // The stalk stops exactly on the branch's center line, round cap included, so it never pokes
+      // out the far side. Find where the bud's axis crosses the actual (curved) center line: sample
+      // the branch around t and see which side of it each point along the axis lies on.
+      const near = [];
+      for (let i = 0; i <= 80; i++) near.push(fn(clamp(t - .2 + i * .005, 0, 1)));
+      const side = (qx, qy) => {
+        let best = Infinity, sd = 0;
+        for (let i = 0; i < near.length - 1; i++) {
+          const [x1, y1] = near[i], [x2, y2] = near[i + 1], ex = x2 - x1, ey = y2 - y1, e2 = ex * ex + ey * ey || 1e-12;
+          const h = clamp(((qx - x1) * ex + (qy - y1) * ey) / e2, 0, 1), px = x1 + ex * h, py = y1 + ey * h, dd = Math.hypot(qx - px, qy - py);
+          if (dd < best) { best = dd; sd = ex * (qy - y1) - ey * (qx - x1); }
+        }
+        return sd;
+      };
+      let mx = x + ux * R * 1.9, my = y + uy * R * 1.9, c = R * 1.9;
+      const s0 = Math.sign(side(mx, my));
+      for (let s = R, prev = R, pv = side(mx - ux * R, my - uy * R); s <= R * 3.5; s += R / 40) {
+        const v = side(mx - ux * s, my - uy * s);
+        if (Math.sign(v) !== s0) { c = prev + (s - prev) * pv / ((pv - v) || 1e-12); break; }
+        prev = s; pv = v;
+      }
+      // Stalk length below the base, short of the crossing by its round cap. If that leaves too little
+      // stalk, the bud moves out along its axis until it has enough.
+      const cap = Math.max(.005, R * .12) / 2, min = R * .45;
+      let st = c - R - cap;
+      if (st < min) { mx += ux * (min - st); my += uy * (min - st); st = min; }
+      return budSVG(mx, my, rb, P, k, a, st / R);
+    };
+    const twigStart = () => {
+      const Z = C.twigZones, sum = Z.reduce((s, z) => s + z[2], 0);
+      let pick = rand() * sum, z = Z[Z.length - 1];
+      for (const b of Z) { if (pick < b[2]) { z = b; break; } pick -= b[2]; }
+      return z[0] + rand() * (z[1] - z[0]);
+    };
+    const shoot = (fn, n, len, P, o, total) => {
+      // Sample the branch to find its length
+      let Lm = 0, prev = fn(0);
+      for (let i = 1; i <= 12; i++) { const p = fn(i / 12); Lm += Math.hypot(p[0] - prev[0], p[1] - prev[1]); prev = p; }
+      const t = twigStart(), p0 = fn(t), Lt = Lm * C.twigLength * scale(C.twigVary);
+      // Aim along where the branch is heading a little further on, not just its direction at the
+      // start point, so a shoot off a curving branch runs alongside it instead of sticking out
+      const ahead = fn(Math.min(1, t + C.twigLength * 1.2)), a0 = Math.atan2(ahead[1] - p0[1], ahead[0] - p0[0]);
+      const at = dir(fn, t), turn = Math.atan2(Math.sin(at - a0), Math.cos(at - a0));   // local tangent vs aim
+      let lean = C.twigAngle * scale(C.twigVary) * Math.PI / 180;
+      const tipOf = (s, ln) => { const a = a0 + s * ln * .6; return [p0[0] + Math.cos(a) * Lt, p0[1] + Math.sin(a) * Lt]; };
+      // Lean to a random side, unless that runs the shoot into the card's edge
+      let s = rand() < .5 ? -1 : 1;
+      if (margin(tipOf(s, lean)) < .12 && margin(tipOf(-s, lean)) > margin(tipOf(s, lean))) s = -s;
+      // Keep the tip within C.twigReach leaf lengths of the main branch: lean less until it is
+      const main = []; for (let i = 0; i <= 24; i++) main.push(fn(i / 24));
+      const off = p => Math.min(...main.map(q => Math.hypot(p[0] - q[0], p[1] - q[1])));
+      for (let i = 0; i < 8 && off(tipOf(s, lean)) > C.twigReach * len; i++) lean *= .75;
+      // It leaves the branch at the branch's own angle eased toward the lean, and settles back nearly
+      // parallel at its tip
+      const a1 = a0 + turn * .5 + s * lean, a2 = a0 + s * lean * .2, tip = keep(tipOf(s, lean));
+      const c1 = keep([p0[0] + Math.cos(a1) * Lt / 3, p0[1] + Math.sin(a1) * Lt / 3]);
+      const c2 = keep([tip[0] - Math.cos(a2) * Lt / 3, tip[1] - Math.sin(a2) * Lt / 3]);
+      const tf = bez(p0[0], p0[1], c1[0], c1[1], c2[0], c2[1], tip[0], tip[1]);
+      const svg = sprigSVG(tf, Math.max(2, Math.round(total * C.twigLeaves)), len * .85, P,
+        { ...o, sw: o.sw * C.twigWidth, start: .2, seed: (seed + total * 17) % 99991, jit: C.leafPosition, flip: rand() < .5 ? 1 : 0 });
+      return [svg, stemFlower(tf, len * .85, P)];
+    };
+    V.sprig = (fn, n, len, P, o = {}) => {
+      if (!on) return sprigSVG(fn, n, len, P, o);
+      const m = Math.max(2, n + Math.round(pm(C.leafCount))), l = len * scale(C.leafSize);
+      const opts = { ...o, spread: (o.spread ?? 42) + pm(C.leafSpread), sw: (o.sw ?? .011) * scale(C.branchWidth), seed: seed % 99991, jit: C.leafPosition,
+        flip: chance(C.leafFlip) ? 1 : 0, swell: C.branchSwell ? [C.branchSwell, rand() * 6.28] : null };
+      // Side shoots go under the branch, so it reads as growing out of it. Laurel's paired leaves get none.
+      // Flowers go on top of everything, so leaves never hide them.
+      let twigs = '', blooms = '';
+      const grow = total => { const [g, f] = shoot(fn, m, l, P, opts, total); twigs += g; blooms += f; };
+      if (!o.pairs && chance(C.twigChance)) {
+        grow(m);
+        if (chance(C.twigSecond)) grow(m + 1);
+      }
+      return twigs + sprigSVG(fn, m, l, P, opts) + blooms + stemFlower(fn, l, P);
+    };
     // A loose leaf tucked beside the flowers
     V.leaf = (x, y, a, len, fill, vein, wf = 1, bend = 0, tw = 0) => on
       ? leafSVG(x, y, a + pm(C.looseLeafAngle), len * scale(C.looseLeafSize), fill, vein, wf, bend + pm(.08), clamp(tw + pm(.3), -1, 1))

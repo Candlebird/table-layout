@@ -91,7 +91,12 @@ under the bottom panel. The spinning preview shows the first card folded.
   swapping a small rose for a blossom. Every amount is in the `VARIATION` table in `index.html`, and
   setting a value to 0 turns that kind of change off. Shuffled branches stay inside the card's edge,
   and a branch's tip only moves along its main direction: a sideways branch ends at its original
-  height and an upright one at its original x, so only its length changes where it ends.
+  height and an upright one at its original x, so only its length changes where it ends. Shuffled
+  branches also vary a little in thickness, sometimes grow a leafy side shoot or two (never on the
+  laurel), and now and then carry a small blossom or bud along a branch or shoot. Side shoots start
+  mostly in a branch's first quarter, sometimes up to halfway, never past 70% (`twigZones`), and
+  hug the branch: they aim ahead along it and lean only about 14° off it, never more than a leaf
+  length away. Added buds attach to the stem by their stalk.
 - **Images**: none, the same on both sides, separate front & back, or one image that wraps over
   the top fold. Fill or whole image, plus a strength slider to lighten it.
 - **Guides**: cut marks and fold marks, printed only in the paper margin so nothing shows on the
