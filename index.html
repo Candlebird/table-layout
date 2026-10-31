@@ -3089,7 +3089,7 @@
     if (id === 'frame' || id === 'frame2') {
       const big = id === 'frame2', r = .054 * u * (big ? 1.6 : 1), gap = .4 * u * (big ? 1.35 : 1), d = big ? .1 + r * .6 : .13;
       const st = P.leaf[0];
-      const lines = `<path d="M${d} ${d}H${f3(cx - gap)}M${f3(cx + gap)} ${d}H${f3(w - d)}V${f3(h - d)}H${f3(cx + gap)}M${f3(cx - gap)} ${f3(h - d)}H${d}Z"/>`;
+      const lines = `<path d="M${d} ${d}H${f3(cx - gap)}M${f3(cx + gap)} ${d}H${f3(w - d)}V${f3(h - d)}H${f3(cx + gap)}M${f3(cx - gap)} ${f3(h - d)}H${d}V${d}"/>`;
       const fl = (y, s) => sprigSVG(bez(cx - s * r * .8, y, cx - s * gap * .45, y - .035 * u, cx - s * gap * .8, y + .025 * u, cx - s * gap * 1.08, y), big ? 5 : 4, .085 * u * (big ? 1.45 : 1), P, { sw: big ? .014 : .011, spread: 50, accent: 3, shade: s > 0 ? 0 : 1 });
       const mid = y => fl(y, 1) + fl(y, -1) + leafSVG(cx - r * .5, y, 197, r * 2, P.leaf[0], P.leaf[1], .72, .12, .4) + leafSVG(cx + r * .5, y, -17, r * 2, P.leaf[1], P.leaf[0], .72, -.12, -.4) +
         blossomSVG(cx - r * 1.5, y + r * .15, r * .62, 20, P, 1) + budSVG(cx + r * 1.5, y - r * .1, r * .36, P, 2, 70) + roseSVG(cx, y, r, 0, P, 0);
