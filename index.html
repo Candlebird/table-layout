@@ -591,6 +591,15 @@
   .face { position: relative; width: 100%; height: 100%; overflow: hidden; color: var(--card-ink); }
   .fimg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: var(--fade); }
   .fimg.wrap { top: -100%; height: 200%; }
+  .fdesign { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+  .dgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .dgrid button { height: auto; flex-direction: column; gap: 3px; padding: 5px 4px 4px; font-size: 11px; font-weight: 500; }
+  .dgrid button svg.thumb { width: 100%; height: auto; aspect-ratio: 3.5 / 2; background: #fff; border: 1px solid var(--border); border-radius: 3px; }
+  .dgrid button.on { border-color: var(--accent); background: var(--accent-soft); color: var(--text); box-shadow: 0 0 0 1px var(--accent); }
+  .swatches { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+  .swatches button { width: 24px; height: 24px; padding: 0; border-radius: 50%; overflow: hidden; border: 1px solid var(--border-strong); }
+  .swatches button span { display: block; width: 100%; height: 100%; }
+  .swatches button.on { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent); }
   .fimg.wrap.back { transform: rotate(180deg); }
   .ftext { position: absolute; inset: .1in .14in; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .ftext.top { justify-content: flex-start; }
@@ -823,6 +832,12 @@
       <label class="ccheck"><input type="checkbox" id="cBoth">Name on both sides</label>
     </section>
     <section>
+      <div class="sec-head"><span>Design</span></div>
+      <div class="dgrid" id="cDesign"></div>
+      <div class="cfield" id="cPalRow">Colors <div class="swatches" id="cPalette"></div></div>
+      <div class="chint" id="cDesignHint"></div>
+    </section>
+    <section>
       <div class="sec-head"><span>Images</span></div>
       <div class="cseg grid" id="cImgMode"><button data-v="none">None</button><button data-v="same">Same on both sides</button><button data-v="split">Front &amp; back</button><button data-v="wrap">Wrap over the top</button></div>
       <div class="imgpick" id="pickFront"><div class="thumb" title="Choose an image"></div><div class="what"></div><button class="icon ghost mini" title="Remove the image"><svg class="i"><use href="#i-x"/></svg></button></div>
@@ -834,8 +849,9 @@
     </section>
     <section>
       <div class="sec-head"><span>Guides</span></div>
-      <label class="ccheck"><input type="checkbox" id="cCut">Cut lines and crop marks</label>
-      <label class="ccheck"><input type="checkbox" id="cFold">Fold lines</label>
+      <label class="ccheck"><input type="checkbox" id="cCut">Cut marks in the margin</label>
+      <label class="ccheck"><input type="checkbox" id="cFold">Fold marks in the margin</label>
+      <div class="chint">Marks sit only in the paper margin, so nothing shows on the finished cards.</div>
     </section>
   </div>
   <div class="cards-main">
@@ -845,8 +861,8 @@
         <h2>Print, cut, fold</h2>
         <ol>
           <li>Print on letter paper at <b>100% / “Actual size”</b>, not “Fit to page”</li>
-          <li>Cut along the gray lines; the marks in the margin show where</li>
-          <li>Fold on every dashed line, with the printing on the outside</li>
+          <li>Cut between the solid marks in the margin, using a ruler or paper trimmer</li>
+          <li>Fold between the dashed marks, with the printing on the outside. Scoring along a ruler first makes it crisp</li>
           <li>Lay the blank flap over the bottom panel and glue or staple it</li>
         </ol>
         <button class="primary" id="cPrint"><svg class="i"><use href="#i-print"/></svg><span>Print</span></button>
@@ -2875,7 +2891,7 @@
   const CARD_DEFAULTS = {
     who: 'seated', sort: 'table', blanks: 0, size: 'standard', w: 3.5, h: 2,
     font: 'script', ink: '#3b3128', align: 'middle', showTable: true, bothSides: true,
-    imgMode: 'none', fit: 'cover', fade: 100, cutLines: true, foldLines: true,
+    imgMode: 'none', fit: 'cover', fade: 100, cutLines: true, foldLines: true, design: 'none', palette: 'sage',
   };
   const MARGIN = 0.25;          // inches kept clear around the sheet for the printer
   let cards = { ...CARD_DEFAULTS };
@@ -2883,6 +2899,121 @@
   const saveCards = () => { try { localStorage.setItem(CARDS_KEY, JSON.stringify(cards)); } catch {} };
   const cardImgs = { front: null, back: null };   // object URLs
   const cardImgInfo = { front: '', back: '' };
+
+  // ---------- card designs ----------
+  // Botanical borders drawn as vector shapes for the exact card size, so they never stretch or get cropped
+  // and they print sharp. Everything is in inches. Each design also says how much room it needs around
+  // the name (pad: top, bottom, sides), so the name never runs into it.
+  const PALETTES = [
+    { id: 'sage', name: 'Sage & blush', leaf: '#8c9c7a', flower: '#e8beb5', edge: '#c98f85', center: '#c4a061' },
+    { id: 'eucalyptus', name: 'Eucalyptus', leaf: '#6e8f87', flower: '#d5e0db', edge: '#8fada5', center: '#6e8f87' },
+    { id: 'blush', name: 'Blush', leaf: '#c99c94', flower: '#f0d2cb', edge: '#d3a197', center: '#b8975a' },
+    { id: 'dusty', name: 'Dusty blue', leaf: '#8a9c8a', flower: '#bfcddb', edge: '#8299b0', center: '#c4a061' },
+    { id: 'burgundy', name: 'Burgundy', leaf: '#7b8a68', flower: '#8e3b4b', edge: '#6e2736', center: '#d3ac62' },
+    { id: 'gold', name: 'Gold', leaf: '#b8975a', flower: '#e3cfa3', edge: '#b8975a', center: '#9c7b3f' },
+    { id: 'ink', name: 'Black ink', leaf: '#3b3128', flower: '#ffffff', edge: '#3b3128', center: '#3b3128' },
+  ];
+  const DESIGNS = [
+    { id: 'none', name: 'None' },
+    { id: 'frame', name: 'Classic frame' },
+    { id: 'vines', name: 'Leafy corners' },
+    { id: 'floral', name: 'Floral corners' },
+    { id: 'garland', name: 'Garland' },
+    { id: 'laurel', name: 'Laurel' },
+  ];
+  const f3 = n => +n.toFixed(3);
+
+  // One leaf with its base at (x, y), pointing at angle a (degrees), len long
+  function leafSVG(x, y, a, len, op = 1) {
+    const l = f3(len), wd = f3(len * 0.27);
+    return `<path d="M0 0C${f3(l * .3)} ${-wd} ${f3(l * .72)} ${-wd} ${l} 0C${f3(l * .72)} ${wd} ${f3(l * .3)} ${wd} 0 0Z"` +
+      ` transform="translate(${f3(x)} ${f3(y)}) rotate(${f3(a)})"${op < 1 ? ` opacity="${op}"` : ''}/>`;
+  }
+  // A five-petal blossom
+  function blossomSVG(x, y, r, rot, P) {
+    let s = `<g transform="translate(${f3(x)} ${f3(y)}) rotate(${f3(rot)})"><g fill="${P.flower}" stroke="${P.edge}" stroke-width="${f3(Math.max(.005, r * .05))}">`;
+    for (let i = 0; i < 5; i++) s += `<ellipse cx="0" cy="${f3(-r * .52)}" rx="${f3(r * .36)}" ry="${f3(r * .5)}" transform="rotate(${i * 72})"/>`;
+    return s + `</g><circle r="${f3(r * .2)}" fill="${P.center}"/>` +
+      [0, 72, 144, 216, 288].map(a => `<circle cx="${f3(Math.sin(a * Math.PI / 180) * r * .3)}" cy="${f3(-Math.cos(a * Math.PI / 180) * r * .3)}" r="${f3(r * .045)}" fill="${P.center}"/>`).join('') + '</g>';
+  }
+  const budSVG = (x, y, r, P) => `<circle cx="${f3(x)}" cy="${f3(y)}" r="${f3(r)}" fill="${P.flower}" stroke="${P.edge}" stroke-width="${f3(Math.max(.004, r * .12))}"/>`;
+  // A leafy stem along the curve fn(t), t from 0 to 1. Leaves alternate sides, or come in pairs (laurel),
+  // get smaller toward the tip, and the tip ends in one leaf.
+  function sprigSVG(fn, n, len, P, { pairs = false, spread = 40, sw = .012 } = {}) {
+    const pts = [];
+    for (let i = 0; i <= 20; i++) pts.push(fn(i / 20));
+    let s = `<path d="M${pts.map(p => `${f3(p[0])} ${f3(p[1])}`).join('L')}" fill="none" stroke="${P.leaf}" stroke-width="${f3(sw)}" stroke-linecap="round"/><g fill="${P.leaf}">`;
+    const ang = t => { const a = fn(Math.max(0, t - .01)), b = fn(Math.min(1, t + .01)); return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI; };
+    for (let i = 0; i < n; i++) {
+      const t = .08 + .84 * i / Math.max(1, n - 1), [x, y] = fn(t), a = ang(t), l = len * (1 - .35 * t);
+      if (pairs) s += leafSVG(x, y, a - spread, l) + leafSVG(x, y, a + spread, l, .85);
+      else s += leafSVG(x, y, a + (i % 2 ? spread : -spread), l, i % 2 ? .85 : 1);
+    }
+    const [x, y] = fn(1);
+    return s + leafSVG(x, y, ang(1), len * .6) + '</g>';
+  }
+  const bez = (x0, y0, x1, y1, x2, y2, x3, y3) => t => {
+    const u = 1 - t;
+    return [u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3, u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3];
+  };
+
+  // Returns { svg, pad: [top, bottom, sides] } for one face of a w × h card
+  function designFor(id, w, h, P) {
+    const u = Math.min(h, w / 1.6), cx = w / 2;
+    const wrap = (inner, pad) => ({ svg: `<svg class="fdesign" viewBox="0 0 ${w} ${h}" aria-hidden="true">${inner}</svg>`, pad });
+    const both = g => g + `<g transform="rotate(180 ${f3(cx)} ${f3(h / 2)})">${g}</g>`;
+    if (id === 'frame') {
+      const d = .1, gap = .2 * u, r = .05 * u;
+      const line = (y, dd, sw) => `<path d="M${dd} ${f3(y)}H${f3(cx - gap)}M${f3(cx + gap)} ${f3(y)}H${f3(w - dd)}" />`;
+      const side = (dd) => `<path d="M${dd} ${dd}V${f3(h - dd)}M${f3(w - dd)} ${dd}V${f3(h - dd)}"/>`;
+      const fl = y => `<g fill="${P.leaf}">${leafSVG(cx - r * 1.1, y, 180, .11 * u)}${leafSVG(cx + r * 1.1, y, 0, .11 * u)}</g>` + blossomSVG(cx, y, r, 0, P);
+      return wrap(`<g fill="none" stroke="${P.leaf}" stroke-width=".012">${line(d, d)}${line(h - d, d)}${side(d)}</g>` +
+        `<g fill="none" stroke="${P.leaf}" stroke-width=".005"><rect x="${d + .04}" y="${d + .04}" width="${f3(w - 2 * d - .08)}" height="${f3(h - 2 * d - .08)}"/></g>` +
+        fl(d) + fl(h - d), [.16 + .03 * u, .16 + .03 * u, .14]);
+    }
+    if (id === 'vines') {
+      const c = .13, along = Math.min(w * .42, .8 * u), down = Math.min(h * .5, .55 * u);
+      const g = sprigSVG(bez(c + .02, c, c + along * .35, c - .05, c + along * .7, c + .07, c + along, c + .01), 7, .12 * u, P) +
+        sprigSVG(bez(c, c + .02, c - .04, c + down * .35, c + .06, c + down * .7, c + .02, c + down), 5, .11 * u, P) +
+        blossomSVG(c, c, .075 * u, 10, P) + budSVG(c + .1 * u, c + .07 * u, .022 * u, P) + budSVG(c + .06 * u, c + .12 * u, .018 * u, P);
+      return wrap(both(g), [.17 * u, .17 * u, .12]);
+    }
+    if (id === 'floral') {
+      const k = u, g =
+        sprigSVG(bez(.2 * k, .1 * k, .4 * k, .02 * k, .62 * k, .1 * k, Math.min(w * .45, .9 * k), .05 * k), 5, .1 * k, P) +
+        sprigSVG(bez(.1 * k, .2 * k, .02 * k, .38 * k, .1 * k, .5 * k, .05 * k, Math.min(h * .55, .7 * k)), 4, .09 * k, P) +
+        `<g fill="${P.leaf}">${leafSVG(.12 * k, .12 * k, 25, .26 * k)}${leafSVG(.12 * k, .12 * k, 62, .25 * k, .85)}${leafSVG(.1 * k, .1 * k, -12, .2 * k, .85)}${leafSVG(.1 * k, .1 * k, 100, .18 * k)}</g>` +
+        blossomSVG(.15 * k, .13 * k, .12 * k, 8, P) + blossomSVG(.36 * k, .07 * k, .075 * k, 30, P) + blossomSVG(.07 * k, .34 * k, .065 * k, 50, P) +
+        budSVG(.5 * k, .13 * k, .022 * k, P) + budSVG(.47 * k, .04 * k, .018 * k, P) + budSVG(.2 * k, .35 * k, .02 * k, P);
+      return wrap(both(g), [.2 * u, .2 * u, .14 + .06 * u]);
+    }
+    if (id === 'garland') {
+      const e = Math.min(w * .44, 1.05 * u), y0 = .12 * u;
+      const half = s => sprigSVG(bez(cx + s * .06 * u, y0 + .02 * u, cx + s * e * .35, y0 + .12 * u, cx + s * e * .7, y0 + .06 * u, cx + s * e, y0 - .04 * u), 7, .11 * u, P);
+      return wrap(half(-1) + half(1) +
+        `<g fill="${P.leaf}">${leafSVG(cx, y0, 200, .16 * u)}${leafSVG(cx, y0, -20, .16 * u)}</g>` +
+        blossomSVG(cx - .12 * u, y0 + .02 * u, .06 * u, 20, P) + blossomSVG(cx + .12 * u, y0 + .02 * u, .06 * u, 50, P) + blossomSVG(cx, y0, .085 * u, 0, P) +
+        budSVG(cx - .22 * u, y0 + .07 * u, .02 * u, P) + budSVG(cx + .22 * u, y0 + .07 * u, .02 * u, P),
+        [.3 * u, .08, .14]);
+    }
+    if (id === 'laurel') {
+      const rx = Math.min(w * .45, h * 1.05), ry = h * .4, cy = h * .5;
+      const arc = (a0, a1) => t => { const a = (a0 + (a1 - a0) * t) * Math.PI / 180; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; };
+      return wrap(sprigSVG(arc(98, 212), 9, .12 * u, P, { pairs: true, spread: 32 }) + sprigSVG(arc(82, -32), 9, .12 * u, P, { pairs: true, spread: 32 }) +
+        blossomSVG(cx, cy + ry + .01, .05 * u, 0, P),
+        [.1, .16 * u, Math.max(.14, w / 2 - rx * .82)]);
+    }
+    return { svg: '', pad: [0, 0, 0] };
+  }
+  let designCache = null;
+  function cardDesign(w, h) {
+    const key = [cards.design, cards.palette, w, h].join('|');
+    if (!designCache || designCache.key !== key) {
+      const P = PALETTES.find(p => p.id === cards.palette) || PALETTES[0];
+      designCache = { key, ...designFor(cards.design, w, h, P) };
+    }
+    return designCache;
+  }
 
   function cardSize() {
     const p = SIZES.find(s => s.id === cards.size);
@@ -2960,13 +3091,14 @@
     if (m === 'same' && cardImgs.front) img = `<img class="fimg" src="${cardImgs.front}" style="object-fit:${fit}" alt="">`;
     else if (m === 'split' && cardImgs[side]) img = `<img class="fimg" src="${cardImgs[side]}" style="object-fit:${fit}" alt="">`;
     else if (m === 'wrap' && cardImgs.front) img = `<img class="fimg wrap ${side}" src="${cardImgs.front}" style="object-fit:${fit}" alt="">`;
+    const D = cardDesign(w, h), [pt, pb, ps] = D.pad;
     let text = '';
     if (card.name && (side === 'front' || cards.bothSides)) {
-      const n = card.fit || (card.fit = fitName(card.name, w, h));
-      text = `<div class="ftext ${cards.align}"><div class="fname" style="font-size:${n.size.toFixed(3)}in">${n.lines.map(esc).join('<br>')}</div>` +
+      const n = card.fit || (card.fit = fitName(card.name, w - 2 * ps, h - pt - pb));
+      text = `<div class="ftext ${cards.align}" style="inset:${f3(.1 + pt)}in ${f3(.14 + ps)}in ${f3(.1 + pb)}in"><div class="fname" style="font-size:${n.size.toFixed(3)}in">${n.lines.map(esc).join('<br>')}</div>` +
         (cards.showTable && card.table ? `<div class="ftable" style="font-size:${subSize(h).toFixed(3)}in">${esc(card.table)}</div>` : '') + '</div>';
     }
-    return `<div class="face">${img}${text}</div>`;
+    return `<div class="face">${img}${D.svg}${text}</div>`;
   }
   // A turned strip is laid out at its real sideways size, and only each panel's contents are rotated.
   // (Rotating the whole strip would leave its unrotated box hanging off the page, and the printer would
@@ -2982,19 +3114,17 @@
   // Guides for one sheet, in inches: fold lines under the cards; cut lines and margin marks over them
   function guidesSVG(L, count) {
     const { w, h } = cardSize();
-    let under = '', over = '';
     const cutX = new Set(), cutY = new Set(), foldX = new Set(), foldY = new Set();
     const ln = (x1, y1, x2, y2) => `<line x1="${x1.toFixed(3)}" y1="${y1.toFixed(3)}" x2="${x2.toFixed(3)}" y2="${y2.toFixed(3)}"/>`;
     for (let i = 0; i < count; i++) {
       const x = L.x0 + (i % L.cols) * L.sw, y = L.y0 + Math.floor(i / L.cols) * L.sh;
-      over += `<rect x="${x.toFixed(3)}" y="${y.toFixed(3)}" width="${L.sw}" height="${L.sh}"/>`;
       cutX.add(+x.toFixed(4)); cutX.add(+(x + L.sw).toFixed(4)); cutY.add(+y.toFixed(4)); cutY.add(+(y + L.sh).toFixed(4));
       for (let k = 1; k < 4; k++) {
-        if (L.rot) { under += ln(x + k * h, y, x + k * h, y + w); foldX.add(+(x + k * h).toFixed(4)); }
-        else { under += ln(x, y + k * h, x + w, y + k * h); foldY.add(+(y + k * h).toFixed(4)); }
+        if (L.rot) foldX.add(+(x + k * h).toFixed(4));
+        else foldY.add(+(y + k * h).toFixed(4));
       }
     }
-    // Marks in the margin, so the lines can still be found when an image covers them
+    // Only marks in the margin, so no line shows on the finished cards
     const g = 0.06, len = 0.16;
     const top = Math.min(...cutY), bot = Math.max(...cutY), left = Math.min(...cutX), right = Math.max(...cutX);
     let marks = '', ticks = '';
@@ -3004,9 +3134,9 @@
     for (const y of foldY) ticks += ln(left - g - len, y, left - g, y) + ln(right + g, y, right + g + len, y);
     const vb = `viewBox="0 0 ${L.pw} ${L.ph}"`;
     return {
-      under: cards.foldLines ? `<svg ${vb} aria-hidden="true"><g stroke="#9a9a9a" stroke-width=".01" stroke-dasharray=".06 .05">${under}</g></svg>` : '',
+      under: '',
       over: `<svg ${vb} aria-hidden="true">` +
-        (cards.cutLines ? `<g fill="none" stroke="#c4c4c4" stroke-width=".008">${over}</g><g stroke="#555" stroke-width=".01">${marks}</g>` : '') +
+        (cards.cutLines ? `<g stroke="#555" stroke-width=".01">${marks}</g>` : '') +
         (cards.foldLines ? `<g stroke="#888" stroke-width=".01" stroke-dasharray=".04 .03">${ticks}</g>` : '') + '</svg>',
     };
   }
@@ -3107,6 +3237,19 @@
     $('cShowTable').checked = cards.showTable;
     $('cBoth').checked = cards.bothSides;
     $('cFade').value = cards.fade;
+    const pal = PALETTES.find(p => p.id === cards.palette) || PALETTES[0];
+    if (!$('cDesign').children.length || $('cDesign').dataset.pal !== pal.id) {
+      $('cDesign').dataset.pal = pal.id;
+      $('cDesign').innerHTML = DESIGNS.map(d => `<button data-v="${d.id}" title="${d.name}">` +
+        `<svg class="thumb" viewBox="0 0 3.5 2">${designFor(d.id, 3.5, 2, pal).svg}</svg><span>${d.name}</span></button>`).join('');
+      $('cPalette').innerHTML = PALETTES.map(q => `<button data-v="${q.id}" title="${q.name}">` +
+        `<span style="background:linear-gradient(135deg, ${q.leaf} 50%, ${q.flower} 50%)"></span></button>`).join('');
+    }
+    for (const id of ['cDesign', 'cPalette']) for (const b of $(id).children) b.classList.toggle('on', b.dataset.v === cards[id === 'cDesign' ? 'design' : 'palette']);
+    $('cPalRow').hidden = cards.design === 'none';
+    $('cDesignHint').textContent = cards.design === 'none'
+      ? 'Add a printed border. The designs are drawn to fit each card size and print sharp.'
+      : `${pal.name}. The name moves and shrinks so it stays clear of the design. You can add a picture under it in Images.`;
     $('cCut').checked = cards.cutLines;
     $('cFold').checked = cards.foldLines;
     const m = cards.imgMode;
@@ -3145,6 +3288,8 @@
   $('cBoth').onchange = e => setCard('bothSides', e.target.checked);
   $('cFade').oninput = e => setCard('fade', +e.target.value);
   $('cCut').onchange = e => setCard('cutLines', e.target.checked);
+  for (const [id, key] of [['cDesign', 'design'], ['cPalette', 'palette']])
+    $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) setCard(key, b.dataset.v); });
   $('cFold').onchange = e => setCard('foldLines', e.target.checked);
   for (const [id, key] of [['cAlign', 'align'], ['cImgMode', 'imgMode'], ['cFit', 'fit']])
     $(id).addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (b) setCard(key, b.dataset.v); });

@@ -71,9 +71,14 @@ under the bottom panel. The spinning preview shows the first card folded.
 - **Size of each side**: Large 4×2.5, Wide 5×2, Standard 3.5×2, Small 4×1.3, Mini 2.6×1.3, or
   custom. The page turns cards sideways or the paper to landscape, whichever fits more per sheet.
 - **Text**: font, color, position, table name, name on one or both sides.
+- **Design**: built-in borders (Classic frame, Leafy corners, Floral corners, Garland, Laurel) in
+  seven color sets (Sage & blush, Eucalyptus, Blush, Dusty blue, Burgundy, Gold, Black ink). They
+  are drawn for the exact card size, so they never stretch or crop, and the name shrinks to stay
+  clear of them. They can sit on top of a picture from Images.
 - **Images**: none, the same on both sides, separate front & back, or one image that wraps over
   the top fold. Fill or whole image, plus a strength slider to lighten it.
-- **Guides**: cut lines with crop marks, fold lines.
+- **Guides**: cut marks and fold marks, printed only in the paper margin so nothing shows on the
+  finished card. Line a ruler up with a pair of marks to cut or score.
 
 Print at 100% ("Actual size"), not "Fit to page", or the cards come out the wrong size.
 
@@ -166,6 +171,9 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   not saved in the file or online. Large photos are shrunk to 2400 px when added.
 - **Wrap mode** puts one image across both sides, so on the back it reads upside down from the
   other side, as it would on a real folded card. Use "Front & back" if you want both upright.
+- **The border designs are original drawings in the app**, not downloaded art, so there are no
+  licensing questions and they scale to any card size. Any picture you find elsewhere can still be
+  added under Images.
 - **The front panel prints upside down** on the strip, so it is upright once folded.
 - **Chrome print gotcha:** Chrome splits pages before CSS transforms, so a rotated strip kept its
   unrotated height and spilled off the page. Sideways strips are laid out at their real size and
@@ -208,7 +216,9 @@ The single-letter shortcuts are ignored while you're typing in a text field.
   back, saved file holding both, per-device choice.
 - Printer-friendly print: PDF without the photo; the photo option in the dialog.
 - Name cards: 11 guests on 4 letter sheets, names fit their panels, fonts load in print, front
-  panel rotated, wrap image continuous over the fold, printed PDF shows every card whole.
+  panel rotated, wrap image continuous over the fold, printed PDF shows every card whole. All five
+  designs at Standard size and Floral corners at Mini, with names clear of the flowers; no
+  lines on the cards, only margin marks.
 
 No console errors in any of these tests.
 - **Backyard photo and real scale.** The floor shows `backyard.jpg` (the drone photo, originally 500 px =
