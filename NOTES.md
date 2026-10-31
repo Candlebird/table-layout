@@ -71,10 +71,19 @@ under the bottom panel. The spinning preview shows the first card folded.
 - **Size of each side**: Large 4×2.5, Wide 5×2, Standard 3.5×2, Small 4×1.3, Mini 2.6×1.3, or
   custom. The page turns cards sideways or the paper to landscape, whichever fits more per sheet.
 - **Text**: font, color, position, table name, name on one or both sides.
-- **Design**: built-in borders (Classic frame, Leafy corners, Floral corners, Garland, Laurel) in
-  seven color sets (Sage & blush, Eucalyptus, Blush, Dusty blue, Burgundy, Gold, Black ink). They
-  are drawn for the exact card size, so they never stretch or crop, and the name shrinks to stay
-  clear of them. They can sit on top of a picture from Images.
+- **Design**: built-in borders (Classic frame, Grand frame, Leafy corners, Floral corners, Garland,
+  Laurel). Grand frame is the Classic frame scaled up. The greenery is bushy near the flowers and
+  thins out toward the branch tips, with slight random variation that stays the same each time
+  the card is drawn. The borders come in
+  sixteen color sets. Twelve match the wedding's muted fall with winter greenery: Moody fall (the
+  default), Rust & cream, Maroon & pine, Brown & cream, Plum & sage, Wine & blush, Terracotta &
+  olive, Mulberry & slate, Mocha & mauve, Ochre & maroon, Winter berry, and Copper & forest. The
+  other four are Sage & blush, Dusty blue, Gold and Black ink. The fall sets keep the warm colors in the blooms and mix a few pale,
+  frosted leaves into the greenery. The roses are built from overlapping petals rather than
+  circles, buds are closed rosebuds with sepals, and eucalyptus grows in opposite pairs. Leaves
+  vary in width, curl and twist, some catch the light along one half, and the stems taper toward
+  their tips. The borders are drawn for the exact card size, so they never stretch or crop, and the
+  name shrinks to stay clear of them. They can sit on top of a picture from Images.
 - **Images**: none, the same on both sides, separate front & back, or one image that wraps over
   the top fold. Fill or whole image, plus a strength slider to lighten it.
 - **Guides**: cut marks and fold marks, printed only in the paper margin so nothing shows on the

@@ -2891,7 +2891,7 @@
   const CARD_DEFAULTS = {
     who: 'seated', sort: 'table', blanks: 0, size: 'standard', w: 3.5, h: 2,
     font: 'script', ink: '#3b3128', align: 'middle', showTable: true, bothSides: true,
-    imgMode: 'none', fit: 'cover', fade: 100, cutLines: true, foldLines: true, design: 'none', palette: 'sage',
+    imgMode: 'none', fit: 'cover', fade: 100, cutLines: true, foldLines: true, design: 'none', palette: 'moody',
   };
   const MARGIN = 0.25;          // inches kept clear around the sheet for the printer
   let cards = { ...CARD_DEFAULTS };
@@ -2904,53 +2904,176 @@
   // Botanical borders drawn as vector shapes for the exact card size, so they never stretch or get cropped
   // and they print sharp. Everything is in inches. Each design also says how much room it needs around
   // the name (pad: top, bottom, sides), so the name never runs into it.
+  // A palette: two greens (dark, light), a stem color, three blooms [fill, edge], flower centers, berries,
+  // and for the fall palettes a pale frosted green for a few leaves, for a wintry touch.
   const PALETTES = [
-    { id: 'sage', name: 'Sage & blush', leaf: '#8c9c7a', flower: '#e8beb5', edge: '#c98f85', center: '#c4a061' },
-    { id: 'eucalyptus', name: 'Eucalyptus', leaf: '#6e8f87', flower: '#d5e0db', edge: '#8fada5', center: '#6e8f87' },
-    { id: 'blush', name: 'Blush', leaf: '#c99c94', flower: '#f0d2cb', edge: '#d3a197', center: '#b8975a' },
-    { id: 'dusty', name: 'Dusty blue', leaf: '#8a9c8a', flower: '#bfcddb', edge: '#8299b0', center: '#c4a061' },
-    { id: 'burgundy', name: 'Burgundy', leaf: '#7b8a68', flower: '#8e3b4b', edge: '#6e2736', center: '#d3ac62' },
-    { id: 'gold', name: 'Gold', leaf: '#b8975a', flower: '#e3cfa3', edge: '#b8975a', center: '#9c7b3f' },
-    { id: 'ink', name: 'Black ink', leaf: '#3b3128', flower: '#ffffff', edge: '#3b3128', center: '#3b3128' },
+    { id: 'moody', name: 'Moody fall', leaf: ['#4e5d51', '#8b998c'], stem: '#6f5a46',
+      blooms: [['#7a3f45', '#552a2f'], ['#b9805a', '#8f5d3d'], ['#eee4d1', '#a8916f']], center: '#4a3628', berry: '#5e3b33', accent: '#b3beb8' },
+    { id: 'rust', name: 'Rust & cream', leaf: ['#56655a', '#95a194'], stem: '#7a6048',
+      blooms: [['#b47a52', '#8a5735'], ['#efe5d3', '#a8916f'], ['#d4aa84', '#a77e5a']], center: '#5b402c', berry: '#8a5a3c', accent: '#b5bfb7' },
+    { id: 'maroon', name: 'Maroon & pine', leaf: ['#3e5045', '#738879'], stem: '#5e4a3c',
+      blooms: [['#6e353b', '#4b2328'], ['#ece1cd', '#a38e70'], ['#9d6a6c', '#73474a']], center: '#3f2c22', berry: '#4f2a2c', accent: '#a9b7b0' },
+    { id: 'harvest', name: 'Brown & cream', leaf: ['#5f6b5d', '#9aa595'], stem: '#7d6650',
+      blooms: [['#efe5d2', '#a8916f'], ['#c6a27a', '#977552'], ['#8b6b52', '#664c38']], center: '#4d3a2b', berry: '#6b4d3a', accent: '#b8c0b6' },
+    { id: 'plum', name: 'Plum & sage', leaf: ['#55634f', '#93a08b'], stem: '#6c5a4a',
+      blooms: [['#5f3a4b', '#3f2532'], ['#c9a9a6', '#9a7774'], ['#ede4d4', '#a8916f']], center: '#3e2a2c', berry: '#4a2e3a', accent: '#b4bfb5' },
+    { id: 'wine', name: 'Wine & blush', leaf: ['#4a5a50', '#879689'], stem: '#6a5444',
+      blooms: [['#5c2b34', '#3e1a21'], ['#d2aea5', '#a57f76'], ['#efe6d6', '#a8916f']], center: '#3d2a24', berry: '#4c2229', accent: '#b0bcb6' },
+    { id: 'terracotta', name: 'Terracotta & olive', leaf: ['#5c6247', '#9a9d80'], stem: '#7a6148',
+      blooms: [['#a8634a', '#7c4331'], ['#e8d6bd', '#ad9270'], ['#c99c78', '#9b7253']], center: '#4f3626', berry: '#7b4a35', accent: '#bfc2b0' },
+    { id: 'mulberry', name: 'Mulberry & slate', leaf: ['#4c5f5c', '#879a96'], stem: '#62564e',
+      blooms: [['#6a3d52', '#4a2738'], ['#9aa4ae', '#6d7884'], ['#ece6dc', '#a49a8a']], center: '#3b3036', berry: '#4d3040', accent: '#b6c2c2' },
+    { id: 'mocha', name: 'Mocha & mauve', leaf: ['#58645a', '#97a297'], stem: '#76604f',
+      blooms: [['#7d5e52', '#5a4136'], ['#b8969a', '#8c6b70'], ['#efe6d8', '#a8916f']], center: '#47342a', berry: '#5a3f37', accent: '#b7c0b8' },
+    { id: 'ochre', name: 'Ochre & maroon', leaf: ['#525f50', '#909c8c'], stem: '#735c47',
+      blooms: [['#ab8a5e', '#7f6442'], ['#6e353b', '#4b2328'], ['#ede3cf', '#a8916f']], center: '#4a3526', berry: '#5a2f30', accent: '#b4bdb3' },
+    { id: 'winter', name: 'Winter berry', leaf: ['#4f6460', '#8fa39e'], stem: '#665649',
+      blooms: [['#efe8dc', '#a39684'], ['#f7f3ec', '#b3a89a'], ['#7a3f45', '#552a2f']], center: '#5e4a3c', berry: '#6b2a30', accent: '#c3cdca' },
+    { id: 'copper', name: 'Copper & forest', leaf: ['#34463b', '#6e8172'], stem: '#5b4838',
+      blooms: [['#a86b4a', '#7a4a30'], ['#e6d3b8', '#a88d6c'], ['#7c5a44', '#59402f']], center: '#3d2b20', berry: '#6a3a2a', accent: '#a7b5ac' },
+    { id: 'sage', name: 'Sage & blush', leaf: ['#7f9070', '#a9b69c'], stem: '#8c9c7a',
+      blooms: [['#e8beb5', '#c98f85'], ['#f3dcd5', '#d3a197'], ['#ffffff', '#c9b9a8']], center: '#c4a061', berry: '#c98f85' },
+    { id: 'dusty', name: 'Dusty blue', leaf: ['#7c8f80', '#a8b6aa'], stem: '#8a9c8a',
+      blooms: [['#bfcddb', '#8299b0'], ['#e3e9ef', '#9fb0c2'], ['#ffffff', '#b0bccb']], center: '#c4a061', berry: '#8299b0' },
+    { id: 'gold', name: 'Gold', leaf: ['#b8975a', '#d1b98a'], stem: '#b8975a',
+      blooms: [['#e3cfa3', '#b8975a'], ['#f2e6cb', '#c4a76c'], ['#ffffff', '#c4a76c']], center: '#9c7b3f', berry: '#b8975a' },
+    { id: 'ink', name: 'Black ink', leaf: ['#3b3128', '#3b3128'], stem: '#3b3128',
+      blooms: [['#ffffff', '#3b3128'], ['#ffffff', '#3b3128'], ['#ffffff', '#3b3128']], center: '#3b3128', berry: '#3b3128' },
   ];
   const DESIGNS = [
     { id: 'none', name: 'None' },
     { id: 'frame', name: 'Classic frame' },
+    { id: 'frame2', name: 'Grand frame' },
     { id: 'vines', name: 'Leafy corners' },
     { id: 'floral', name: 'Floral corners' },
     { id: 'garland', name: 'Garland' },
     { id: 'laurel', name: 'Laurel' },
   ];
   const f3 = n => +n.toFixed(3);
+  const tr = (x, y, a) => `transform="translate(${f3(x)} ${f3(y)})${a ? ` rotate(${f3(a)})` : ''}"`;
 
-  // One leaf with its base at (x, y), pointing at angle a (degrees), len long
-  function leafSVG(x, y, a, len, op = 1) {
-    const l = f3(len), wd = f3(len * 0.27);
-    return `<path d="M0 0C${f3(l * .3)} ${-wd} ${f3(l * .72)} ${-wd} ${l} 0C${f3(l * .72)} ${wd} ${f3(l * .3)} ${wd} 0 0Z"` +
-      ` transform="translate(${f3(x)} ${f3(y)}) rotate(${f3(a)})"${op < 1 ? ` opacity="${op}"` : ''}/>`;
+  // One pointed leaf with its base at (x, y), pointing at angle a (degrees), len long, with a center vein
+  // One pointed leaf with its base at (x, y), pointing at angle a (degrees), len long, with a center vein.
+  // wf narrows it (a leaf turned partly edge-on), bend curls the tip to one side, and tw makes one half
+  // wider than the other, as a leaf looks when it twists on its stalk.
+  function leafSVG(x, y, a, len, fill, vein, wf = 1, bend = 0, tw = 0, fold = 0) {
+    const l = len, wa = l * .27 * wf * (1 + .35 * tw), wb = l * .23 * wf * (1 - .35 * tw), b = bend * l;
+    const d = `M0 0C${f3(l * .25)} ${f3(-wa + b * .08)} ${f3(l * .66)} ${f3(-wa + b * .55)} ${f3(l)} ${f3(b - l * .03)}` +
+      `C${f3(l * .7)} ${f3(wb + b * .6)} ${f3(l * .28)} ${f3(wb + b * .08)} 0 0Z`;
+    // fold lightens one half, as when a leaf folds a little along its midrib and catches the light
+    const tip = `${f3(l)} ${f3(b - l * .03)}`;
+    return `<g ${tr(x, y, a)}><path d="${d}" fill="${fill}"/>` +
+      (fold ? `<path d="M${tip}C${f3(l * .7)} ${f3(wb + b * .6)} ${f3(l * .28)} ${f3(wb + b * .08)} 0 0Q${f3(l * .5)} ${f3(b * .3)} ${tip}Z" fill="#fff" opacity="${fold}"/>` : '') +
+      (vein ? `<path d="M${f3(l * .06)} 0Q${f3(l * .5)} ${f3(b * .3 - l * .02 * tw)} ${f3(l * .86)} ${f3(b * .78)}" fill="none" stroke="${vein}" stroke-width="${f3(Math.max(.003, l * .022))}" opacity=".5" stroke-linecap="round"/>` : '') + '</g>';
   }
-  // A five-petal blossom
-  function blossomSVG(x, y, r, rot, P) {
-    let s = `<g transform="translate(${f3(x)} ${f3(y)}) rotate(${f3(rot)})"><g fill="${P.flower}" stroke="${P.edge}" stroke-width="${f3(Math.max(.005, r * .05))}">`;
-    for (let i = 0; i < 5; i++) s += `<ellipse cx="0" cy="${f3(-r * .52)}" rx="${f3(r * .36)}" ry="${f3(r * .5)}" transform="rotate(${i * 72})"/>`;
-    return s + `</g><circle r="${f3(r * .2)}" fill="${P.center}"/>` +
-      [0, 72, 144, 216, 288].map(a => `<circle cx="${f3(Math.sin(a * Math.PI / 180) * r * .3)}" cy="${f3(-Math.cos(a * Math.PI / 180) * r * .3)}" r="${f3(r * .045)}" fill="${P.center}"/>`).join('') + '</g>';
+  // A rounded eucalyptus leaf with a soft point and a pale midrib, on a short stalk
+  function euLeafSVG(x, y, a, r, fill, stroke) {
+    const b = r * .4, e = r * 2.5;
+    return `<g ${tr(x, y, a)}><path d="M0 0L${f3(b)} 0" stroke="${stroke}" stroke-width="${f3(Math.max(.004, r * .08))}"/>` +
+      `<path d="M${f3(b)} 0C${f3(b + r * .1)} ${f3(-r * 1.05)} ${f3(e - r * .2)} ${f3(-r * 1.1)} ${f3(e)} ${f3(-r * .05)}C${f3(e - r * .25)} ${f3(r * .95)} ${f3(b + r * .15)} ${f3(r * .95)} ${f3(b)} 0Z" fill="${fill}"/>` +
+      `<path d="M${f3(b + r * .15)} 0Q${f3((b + e) / 2)} ${f3(-r * .08)} ${f3(e - r * .35)} ${f3(-r * .05)}" fill="none" stroke="#fff" stroke-width="${f3(Math.max(.003, r * .05))}" opacity=".3"/></g>`;
   }
-  const budSVG = (x, y, r, P) => `<circle cx="${f3(x)}" cy="${f3(y)}" r="${f3(r)}" fill="${P.flower}" stroke="${P.edge}" stroke-width="${f3(Math.max(.004, r * .12))}"/>`;
-  // A leafy stem along the curve fn(t), t from 0 to 1. Leaves alternate sides, or come in pairs (laurel),
-  // get smaller toward the tip, and the tip ends in one leaf.
-  function sprigSVG(fn, n, len, P, { pairs = false, spread = 40, sw = .012 } = {}) {
+  // A five-petal blossom, two layers of petals
+  function blossomSVG(x, y, r, rot, P, k = 0) {
+    const [fill, edge] = P.blooms[k % 3], sw = f3(Math.max(.004, r * .045));
+    let s = `<g ${tr(x, y, rot)}><g fill="${fill}" stroke="${edge}" stroke-width="${sw}">`;
+    for (let i = 0; i < 5; i++) s += `<path d="M0 0C${f3(-r * .58)} ${f3(-r * .35)} ${f3(-r * .5)} ${f3(-r)} ${f3(-r * .12)} ${f3(-r * .98)}Q0 ${f3(-r * .88)} ${f3(r * .12)} ${f3(-r * .98)}C${f3(r * .5)} ${f3(-r)} ${f3(r * .58)} ${f3(-r * .35)} 0 0Z" transform="rotate(${i * 72})"/>`;
+    s += `</g><g fill="none" stroke="${edge}" stroke-width="${sw}" opacity=".6">`;
+    for (let i = 0; i < 5; i++) s += `<path d="M0 ${f3(-r * .25)}L0 ${f3(-r * .6)}" transform="rotate(${i * 72})"/>`;
+    s += `</g><circle r="${f3(r * .2)}" fill="${P.center}"/>`;
+    for (let i = 0; i < 7; i++) { const a = i * 2 * Math.PI / 7; s += `<circle cx="${f3(Math.sin(a) * r * .3)}" cy="${f3(-Math.cos(a) * r * .3)}" r="${f3(r * .04)}" fill="${P.center}"/>`; }
+    return s + '</g>';
+  }
+  // A garden rose seen from above, built from separate overlapping petals of slightly uneven size:
+  // a ring of broad outer petals with notched tips, a smaller turned ring, then a cupped, curling center
+  function petalPath(L, wd) {
+    const n = f3(L * .07);
+    return `M0 0C${f3(-wd)} ${f3(-L * .12)} ${f3(-wd * 1.02)} ${f3(-L * .92)} ${f3(-wd * .22)} ${f3(-L)}` +
+      `Q0 ${f3(-L + n)} ${f3(wd * .22)} ${f3(-L)}C${f3(wd * 1.02)} ${f3(-L * .92)} ${f3(wd)} ${f3(-L * .12)} 0 0Z`;
+  }
+  function roseSVG(x, y, r, rot, P, k = 0) {
+    const [fill, edge] = P.blooms[k % 3], sw = f3(Math.max(.004, r * .035));
+    const jit = [1, .9, .97, .86, 1.02, .93, .95];
+    const ring = (n, R, off, shade) => {
+      let g = '';
+      for (let i = 0; i < n; i++) {
+        const L = R * jit[(i + n) % 7], a = off + i * 360 / n + (i % 2 ? 7 : -5);
+        g += `<g transform="rotate(${f3(a)})"><path d="${petalPath(L, L * .62)}" fill="${fill}"/>` +
+          (shade ? `<path d="${petalPath(L, L * .62)}" fill="${edge}" opacity="${shade}"/>` : '') +
+          `<path d="${petalPath(L, L * .62)}" fill="none" stroke="${edge}" stroke-width="${sw}" stroke-linejoin="round"/>` +
+          `<path d="M${f3(-L * .16)} ${f3(-L * .5)}Q0 ${f3(-L * .62)} ${f3(L * .12)} ${f3(-L * .78)}" fill="none" stroke="${edge}" stroke-width="${f3(sw * .8)}" opacity=".45" stroke-linecap="round"/></g>`;
+      }
+      return g;
+    };
+    const c = r * .3, arc = (q, a0, a1) => {
+      const p = a => [f3(Math.cos(a * Math.PI / 180) * c * q), f3(Math.sin(a * Math.PI / 180) * c * q)];
+      const [x0, y0] = p(a0), [x1, y1] = p(a1);
+      return `<path d="M${x0} ${y0}A${f3(c * q)} ${f3(c * q * .85)} 0 0 1 ${x1} ${y1}"/>`;
+    };
+    return `<g ${tr(x, y, rot)}>` + ring(6, r, 0, 0) + ring(5, r * .7, 34, .1) +
+      `<ellipse rx="${f3(c * 1.05)}" ry="${f3(c * .95)}" fill="${fill}"/><ellipse rx="${f3(c * 1.05)}" ry="${f3(c * .95)}" fill="${edge}" opacity=".2" stroke="${edge}" stroke-width="${sw}"/>` +
+      `<g fill="none" stroke="${edge}" stroke-width="${sw}" stroke-linecap="round">${arc(.85, 200, 340)}${arc(.62, 20, 170)}${arc(.4, 220, 380)}${arc(.2, 60, 250)}</g></g>`;
+  }
+  // A closed rosebud seen from the side: a teardrop of petals with one wrapped petal edge, held by two
+  // green sepals on a short stalk. (x, y) is its middle; a turns it (0 points up).
+  function budSVG(x, y, r, P, k = 0, a = 0) {
+    const [fill, edge] = P.blooms[k % 3], R = r * 1.25, sw = f3(Math.max(.004, R * .07));
+    return `<g ${tr(x, y, a)}><g transform="translate(0 ${f3(R)})">` +
+      `<path d="M0 ${f3(R * .2)}L0 ${f3(R * .9)}" stroke="${P.stem}" stroke-width="${f3(Math.max(.005, R * .12))}" stroke-linecap="round"/>` +
+      `<path d="M0 0C${f3(-R * .95)} ${f3(-R * .25)} ${f3(-R * .7)} ${f3(-R * 1.55)} 0 ${f3(-R * 2)}C${f3(R * .7)} ${f3(-R * 1.55)} ${f3(R * .95)} ${f3(-R * .25)} 0 0Z" fill="${fill}" stroke="${edge}" stroke-width="${sw}"/>` +
+      `<path d="M${f3(-R * .55)} ${f3(-R * .45)}Q${f3(-R * .05)} ${f3(-R * 1.2)} ${f3(R * .3)} ${f3(-R * 1.78)}" fill="none" stroke="${edge}" stroke-width="${sw}" stroke-linecap="round"/>` +
+      leafSVG(0, R * .15, -122, R * .8, P.leaf[0], '', .5, .2) + leafSVG(0, R * .15, -58, R * .75, P.leaf[0], '', .5, -.2) + leafSVG(0, R * .15, -95, R * .55, P.leaf[1], '', .45, .1) + '</g></g>';
+  }
+  // A little cluster of berries on fine stems
+  function berriesSVG(x, y, a, len, P) {
+    let s = `<g ${tr(x, y, a)}><g stroke="${P.stem}" stroke-width="${f3(Math.max(.003, len * .022))}" fill="none" stroke-linecap="round">`;
+    const tips = [[len, 0, .075], [len * .74, -len * .26, .062], [len * .78, len * .24, .066], [len * .5, -len * .05, .055]];
+    for (const [tx, ty] of tips) s += `<path d="M0 0Q${f3(tx * .5)} ${f3(ty * .2)} ${f3(tx)} ${f3(ty)}"/>`;
+    s += '</g>';
+    for (const [tx, ty, q] of tips) s += `<circle cx="${f3(tx)}" cy="${f3(ty)}" r="${f3(len * q)}" fill="${P.berry}"/>` +
+      `<circle cx="${f3(tx - len * q * .35)}" cy="${f3(ty - len * q * .35)}" r="${f3(len * q * .3)}" fill="#fff" opacity=".28"/>`;
+    return s + '</g>';
+  }
+  // A stem along the curve fn(t), t from 0 to 1, with leaves that alternate sides or come in pairs (laurel),
+  // shrink toward the tip, and end in one leaf. kind 'eu' gives round eucalyptus leaves.
+  function sprigSVG(fn, n, len, P, { pairs = false, spread = 42, sw = .011, kind = 'leaf', shade = 0, accent = 0, start = .1 } = {}) {
     const pts = [];
-    for (let i = 0; i <= 20; i++) pts.push(fn(i / 20));
-    let s = `<path d="M${pts.map(p => `${f3(p[0])} ${f3(p[1])}`).join('L')}" fill="none" stroke="${P.leaf}" stroke-width="${f3(sw)}" stroke-linecap="round"/><g fill="${P.leaf}">`;
+    for (let i = 0; i <= 24; i++) pts.push(fn(i / 24));
+    // The stem is one filled shape that narrows smoothly from the base to the tip
+    const L = [], R = [];
+    pts.forEach((p, i) => {
+      const q = pts[Math.min(24, i + 1)], o = pts[Math.max(0, i - 1)], dx = q[0] - o[0], dy = q[1] - o[1], d = Math.hypot(dx, dy) || 1;
+      const hw = sw * (1.3 - .85 * i / 24) / 2, nx = -dy / d * hw, ny = dx / d * hw;
+      L.push(`${f3(p[0] + nx)} ${f3(p[1] + ny)}`); R.unshift(`${f3(p[0] - nx)} ${f3(p[1] - ny)}`);
+    });
+    let s = `<path d="M${L.join('L')}L${R.join('L')}Z" fill="${P.stem}"/><circle cx="${f3(pts[0][0])}" cy="${f3(pts[0][1])}" r="${f3(sw * .65)}" fill="${P.stem}"/>`;
     const ang = t => { const a = fn(Math.max(0, t - .01)), b = fn(Math.min(1, t + .01)); return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI; };
-    for (let i = 0; i < n; i++) {
-      const t = .08 + .84 * i / Math.max(1, n - 1), [x, y] = fn(t), a = ang(t), l = len * (1 - .35 * t);
-      if (pairs) s += leafSVG(x, y, a - spread, l) + leafSVG(x, y, a + spread, l, .85);
-      else s += leafSVG(x, y, a + (i % 2 ? spread : -spread), l, i % 2 ? .85 : 1);
+    // Variation is seeded from the sprig's position, so the same card always draws the same way
+    let seed = (Math.floor(Math.abs(pts[0][0] * 9973 + pts[0][1] * 7919 + pts[24][0] * 613 + n * 31 + shade * 7)) % 2147483646) + 1;
+    const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+    // Darker leaves near the base read as depth under the flowers; lighter ones and the odd frosted
+    // leaf toward the tip. Never the frosted color right at the flowers.
+    const col = t => P.accent && accent && t > .4 && rnd() < .22 ? P.accent : P.leaf[(rnd() < .22 + .45 * t ? 1 : 0) ^ (shade && rnd() < .3 ? 1 : 0)];
+    // Each leaf sits on a short stalk and turns a little: narrower, curled or lopsided by a random amount
+    const one = (x, y, a, l, t) => {
+      const c = col(t);
+      if (kind === 'eu') return euLeafSVG(x, y, a, l * .36 * (.85 + .3 * rnd()), c, P.stem);
+      const st = l * .1, r = a * Math.PI / 180, x1 = x + Math.cos(r) * st, y1 = y + Math.sin(r) * st;
+      return `<path d="M${f3(x)} ${f3(y)}L${f3(x1)} ${f3(y1)}" stroke="${P.stem}" stroke-width="${f3(sw * .7)}" stroke-linecap="round"/>` +
+        leafSVG(x1, y1, a, l * .92, c, c === P.leaf[0] ? P.leaf[1] : P.leaf[0], .62 + .45 * rnd(), (rnd() - .5) * .34, rnd() * 2 - 1, rnd() < .55 ? .14 : 0);
+    };
+    // Leaves are a little closer together near the base and thin out toward the tip, all pointing
+    // forward along the stem, with gentle variation in spacing, angle and size
+    const m = Math.round(n * 1.25);
+    for (let i = 0; i < m; i++) {
+      const q = i / Math.max(1, m - 1);
+      const t = Math.min(.94, Math.max(start * .8, start + (.92 - start) * Math.pow(q, 1.3) + (rnd() - .5) * .04));
+      const [x, y] = fn(t), a = ang(t), l = len * (1.05 - .45 * t) * (.85 + .3 * rnd()), sp = spread + (rnd() - .5) * 16;
+      if (pairs || kind === 'eu') { s += one(x, y, a - sp, l, t) + one(x, y, a + sp + (rnd() - .5) * 8, l * (.88 + .16 * rnd()), t); continue; }
+      s += one(x, y, a + (i % 2 ? sp : -sp), l, t);
     }
     const [x, y] = fn(1);
-    return s + leafSVG(x, y, ang(1), len * .6) + '</g>';
+    return s + one(x, y, ang(1) + (rnd() - .5) * 12, len * .5, 1);
   }
   const bez = (x0, y0, x1, y1, x2, y2, x3, y3) => t => {
     const u = 1 - t;
@@ -2962,45 +3085,55 @@
     const u = Math.min(h, w / 1.6), cx = w / 2;
     const wrap = (inner, pad) => ({ svg: `<svg class="fdesign" viewBox="0 0 ${w} ${h}" aria-hidden="true">${inner}</svg>`, pad });
     const both = g => g + `<g transform="rotate(180 ${f3(cx)} ${f3(h / 2)})">${g}</g>`;
-    if (id === 'frame') {
-      const d = .1, gap = .2 * u, r = .05 * u;
-      const line = (y, dd, sw) => `<path d="M${dd} ${f3(y)}H${f3(cx - gap)}M${f3(cx + gap)} ${f3(y)}H${f3(w - dd)}" />`;
-      const side = (dd) => `<path d="M${dd} ${dd}V${f3(h - dd)}M${f3(w - dd)} ${dd}V${f3(h - dd)}"/>`;
-      const fl = y => `<g fill="${P.leaf}">${leafSVG(cx - r * 1.1, y, 180, .11 * u)}${leafSVG(cx + r * 1.1, y, 0, .11 * u)}</g>` + blossomSVG(cx, y, r, 0, P);
-      return wrap(`<g fill="none" stroke="${P.leaf}" stroke-width=".012">${line(d, d)}${line(h - d, d)}${side(d)}</g>` +
-        `<g fill="none" stroke="${P.leaf}" stroke-width=".005"><rect x="${d + .04}" y="${d + .04}" width="${f3(w - 2 * d - .08)}" height="${f3(h - 2 * d - .08)}"/></g>` +
-        fl(d) + fl(h - d), [.16 + .03 * u, .16 + .03 * u, .14]);
+    // Classic frame, and Grand frame: the same layout with larger flowers, a longer spray and a heavier rule
+    if (id === 'frame' || id === 'frame2') {
+      const big = id === 'frame2', r = .054 * u * (big ? 1.6 : 1), gap = .4 * u * (big ? 1.35 : 1), d = big ? .1 + r * .6 : .13;
+      const st = P.leaf[0];
+      const lines = `<path d="M${d} ${d}H${f3(cx - gap)}M${f3(cx + gap)} ${d}H${f3(w - d)}V${f3(h - d)}H${f3(cx + gap)}M${f3(cx - gap)} ${f3(h - d)}H${d}Z"/>`;
+      const fl = (y, s) => sprigSVG(bez(cx - s * r * .8, y, cx - s * gap * .45, y - .035 * u, cx - s * gap * .8, y + .025 * u, cx - s * gap * 1.08, y), big ? 5 : 4, .085 * u * (big ? 1.45 : 1), P, { sw: big ? .014 : .011, spread: 50, accent: 3, shade: s > 0 ? 0 : 1 });
+      const mid = y => fl(y, 1) + fl(y, -1) + leafSVG(cx - r * .5, y, 197, r * 2, P.leaf[0], P.leaf[1], .72, .12, .4) + leafSVG(cx + r * .5, y, -17, r * 2, P.leaf[1], P.leaf[0], .72, -.12, -.4) +
+        blossomSVG(cx - r * 1.5, y + r * .15, r * .62, 20, P, 1) + budSVG(cx + r * 1.5, y - r * .1, r * .36, P, 2, 70) + roseSVG(cx, y, r, 0, P, 0);
+      return wrap(`<g fill="none" stroke="${st}" stroke-width="${big ? .016 : .011}">${lines}</g>` +
+        `<rect x="${d + .045}" y="${d + .045}" width="${f3(w - 2 * d - .09)}" height="${f3(h - 2 * d - .09)}" fill="none" stroke="${st}" stroke-width="${big ? .007 : .005}" opacity=".7"/>` +
+        mid(d) + mid(h - d), big ? [d + r * 1.1 - .07, d + r * 1.1 - .07, .2] : [.2 + .04 * u, .2 + .04 * u, .17]);
     }
     if (id === 'vines') {
       const c = .13, along = Math.min(w * .42, .8 * u), down = Math.min(h * .5, .55 * u);
-      const g = sprigSVG(bez(c + .02, c, c + along * .35, c - .05, c + along * .7, c + .07, c + along, c + .01), 7, .12 * u, P) +
-        sprigSVG(bez(c, c + .02, c - .04, c + down * .35, c + .06, c + down * .7, c + .02, c + down), 5, .11 * u, P) +
-        blossomSVG(c, c, .075 * u, 10, P) + budSVG(c + .1 * u, c + .07 * u, .022 * u, P) + budSVG(c + .06 * u, c + .12 * u, .018 * u, P);
+      const g = sprigSVG(bez(c + .02, c + .01, c + along * .35, c + .02, c + along * .7, c + .08, c + along, c + .04), 8, .105 * u, P, { accent: 4 }) +
+        sprigSVG(bez(c + .02, c + .02, c + along * .25, c + .1 * u, c + along * .45, c + .06 * u, c + along * .55, c + .12 * u), 4, .08 * u, P, { kind: 'eu', shade: 1 }) +
+        sprigSVG(bez(c, c + .02, c - .04, c + down * .35, c + .06, c + down * .7, c + .02, c + down), 6, .11 * u, P, { shade: 1, accent: 5 }) +
+        berriesSVG(c + .075 * u, c + .075 * u, 50, .085 * u, P) +
+        roseSVG(c + .045 * u, c + .045 * u, .072 * u, 10, P, 0) + blossomSVG(c + .17 * u, c + .045 * u, .048 * u, 30, P, 1);
       return wrap(both(g), [.17 * u, .17 * u, .12]);
     }
     if (id === 'floral') {
       const k = u, g =
-        sprigSVG(bez(.2 * k, .1 * k, .4 * k, .02 * k, .62 * k, .1 * k, Math.min(w * .45, .9 * k), .05 * k), 5, .1 * k, P) +
-        sprigSVG(bez(.1 * k, .2 * k, .02 * k, .38 * k, .1 * k, .5 * k, .05 * k, Math.min(h * .55, .7 * k)), 4, .09 * k, P) +
-        `<g fill="${P.leaf}">${leafSVG(.12 * k, .12 * k, 25, .26 * k)}${leafSVG(.12 * k, .12 * k, 62, .25 * k, .85)}${leafSVG(.1 * k, .1 * k, -12, .2 * k, .85)}${leafSVG(.1 * k, .1 * k, 100, .18 * k)}</g>` +
-        blossomSVG(.15 * k, .13 * k, .12 * k, 8, P) + blossomSVG(.36 * k, .07 * k, .075 * k, 30, P) + blossomSVG(.07 * k, .34 * k, .065 * k, 50, P) +
-        budSVG(.5 * k, .13 * k, .022 * k, P) + budSVG(.47 * k, .04 * k, .018 * k, P) + budSVG(.2 * k, .35 * k, .02 * k, P);
+        sprigSVG(bez(.2 * k, .1 * k, .4 * k, .02 * k, .62 * k, .1 * k, Math.min(w * .45, .9 * k), .05 * k), 6, .1 * k, P, { accent: 3 }) +
+        sprigSVG(bez(.1 * k, .2 * k, .02 * k, .38 * k, .1 * k, .5 * k, .05 * k, Math.min(h * .55, .7 * k)), 5, .09 * k, P, { shade: 1 }) +
+        sprigSVG(bez(.15 * k, .15 * k, .3 * k, .2 * k, .38 * k, .24 * k, .45 * k, .3 * k), 4, .07 * k, P, { kind: 'eu' }) +
+        leafSVG(.13 * k, .13 * k, 32, .2 * k, P.leaf[0], P.leaf[1], .68, .14, .5) + leafSVG(.13 * k, .13 * k, 60, .18 * k, P.leaf[1], P.leaf[0], .6, -.16, -.4) +
+        leafSVG(.11 * k, .11 * k, -8, .16 * k, P.leaf[0], P.leaf[1], .62, -.15, .3) + leafSVG(.11 * k, .11 * k, 98, .15 * k, P.leaf[0], P.leaf[1], .62, .15, -.3) +
+        berriesSVG(.3 * k, .1 * k, -20, .15 * k, P) + berriesSVG(.1 * k, .3 * k, 105, .13 * k, P) +
+        roseSVG(.15 * k, .13 * k, .12 * k, 8, P, 0) + blossomSVG(.36 * k, .08 * k, .075 * k, 30, P, 1) + roseSVG(.07 * k, .34 * k, .065 * k, 50, P, 2);
       return wrap(both(g), [.2 * u, .2 * u, .14 + .06 * u]);
     }
     if (id === 'garland') {
       const e = Math.min(w * .44, 1.05 * u), y0 = .12 * u;
-      const half = s => sprigSVG(bez(cx + s * .06 * u, y0 + .02 * u, cx + s * e * .35, y0 + .12 * u, cx + s * e * .7, y0 + .06 * u, cx + s * e, y0 - .04 * u), 7, .11 * u, P);
+      const half = s => sprigSVG(bez(cx + s * .06 * u, y0 + .02 * u, cx + s * e * .35, y0 + .12 * u, cx + s * e * .7, y0 + .06 * u, cx + s * e, y0 - .04 * u), 8, .11 * u, P, { shade: s > 0 ? 1 : 0, accent: 4 }) +
+        sprigSVG(bez(cx + s * .08 * u, y0, cx + s * e * .25, y0 + .02 * u, cx + s * e * .45, y0 + .1 * u, cx + s * e * .6, y0 + .05 * u), 3, .09 * u, P, { kind: 'eu', start: .35 }) +
+        berriesSVG(cx + s * .3 * u, y0 + .06 * u, s > 0 ? 35 : 145, .09 * u, P);
       return wrap(half(-1) + half(1) +
-        `<g fill="${P.leaf}">${leafSVG(cx, y0, 200, .16 * u)}${leafSVG(cx, y0, -20, .16 * u)}</g>` +
-        blossomSVG(cx - .12 * u, y0 + .02 * u, .06 * u, 20, P) + blossomSVG(cx + .12 * u, y0 + .02 * u, .06 * u, 50, P) + blossomSVG(cx, y0, .085 * u, 0, P) +
-        budSVG(cx - .22 * u, y0 + .07 * u, .02 * u, P) + budSVG(cx + .22 * u, y0 + .07 * u, .02 * u, P),
+        leafSVG(cx, y0, 200, .17 * u, P.leaf[0], P.leaf[1]) + leafSVG(cx, y0, -20, .17 * u, P.leaf[0], P.leaf[1]) +
+        blossomSVG(cx - .14 * u, y0 + .02 * u, .065 * u, 20, P, 1) + roseSVG(cx + .14 * u, y0 + .02 * u, .065 * u, 50, P, 2) + roseSVG(cx, y0 + .01 * u, .095 * u, 0, P, 0) +
+        budSVG(cx - .225 * u, y0 + .045 * u, .022 * u, P, 2, -105) + budSVG(cx + .225 * u, y0 + .045 * u, .022 * u, P, 0, 105),
         [.3 * u, .08, .14]);
     }
     if (id === 'laurel') {
       const rx = Math.min(w * .45, h * 1.05), ry = h * .4, cy = h * .5;
       const arc = (a0, a1) => t => { const a = (a0 + (a1 - a0) * t) * Math.PI / 180; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; };
-      return wrap(sprigSVG(arc(98, 212), 9, .12 * u, P, { pairs: true, spread: 32 }) + sprigSVG(arc(82, -32), 9, .12 * u, P, { pairs: true, spread: 32 }) +
-        blossomSVG(cx, cy + ry + .01, .05 * u, 0, P),
+      return wrap(sprigSVG(arc(98, 212), 9, .12 * u, P, { pairs: true, spread: 32, accent: 5 }) + sprigSVG(arc(82, -32), 9, .12 * u, P, { pairs: true, spread: 32, accent: 5 }) +
+        berriesSVG(cx - .04 * u, cy + ry, 200, .1 * u, P) + berriesSVG(cx + .04 * u, cy + ry, -20, .1 * u, P) +
+        blossomSVG(cx - .085 * u, cy + ry - .005, .042 * u, 15, P, 1) + budSVG(cx + .09 * u, cy + ry - .015 * u, .022 * u, P, 2, 75) + roseSVG(cx, cy + ry, .06 * u, 0, P, 0),
         [.1, .16 * u, Math.max(.14, w / 2 - rx * .82)]);
     }
     return { svg: '', pad: [0, 0, 0] };
@@ -3243,7 +3376,7 @@
       $('cDesign').innerHTML = DESIGNS.map(d => `<button data-v="${d.id}" title="${d.name}">` +
         `<svg class="thumb" viewBox="0 0 3.5 2">${designFor(d.id, 3.5, 2, pal).svg}</svg><span>${d.name}</span></button>`).join('');
       $('cPalette').innerHTML = PALETTES.map(q => `<button data-v="${q.id}" title="${q.name}">` +
-        `<span style="background:linear-gradient(135deg, ${q.leaf} 50%, ${q.flower} 50%)"></span></button>`).join('');
+        `<span style="background:conic-gradient(${q.leaf[0]} 0 120deg, ${q.blooms[0][0]} 0 240deg, ${q.blooms[1][0]} 0)"></span></button>`).join('');
     }
     for (const id of ['cDesign', 'cPalette']) for (const b of $(id).children) b.classList.toggle('on', b.dataset.v === cards[id === 'cDesign' ? 'design' : 'palette']);
     $('cPalRow').hidden = cards.design === 'none';
